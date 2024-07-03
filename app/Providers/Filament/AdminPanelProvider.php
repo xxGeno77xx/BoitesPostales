@@ -26,6 +26,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
+            ->maxContentWidth('full')
             ->path('/')
             ->login(OracleLogin::class)
             ->colors([
