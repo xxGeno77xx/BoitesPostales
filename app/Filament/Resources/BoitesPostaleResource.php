@@ -2,17 +2,22 @@
 
 namespace App\Filament\Resources;
 
+use PDO;
+use Carbon\Carbon;
 use Filament\Forms;
 use App\Models\Etat;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use App\Models\BureauPoste;
+use Illuminate\Support\Str;
 use App\Models\BoitesPostale;
 use Filament\Resources\Resource;
 use Filament\Support\Colors\Color;
+use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\Action;
+use App\Procedures\StoredProcedures;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Fieldset;
@@ -38,6 +43,8 @@ class BoitesPostaleResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     const ACTIVATED = 2;
+
+    const REJECTED = 7;
 
     public static function form(Form $form): Form
     {
@@ -141,15 +148,69 @@ class BoitesPostaleResource extends Resource
                 Action::make("valider")
                     ->color(Color::Green)
                     ->action(function ($record) {
-                        $record->update([
-                            "code_etat_bp" => self::ACTIVATED //atribuée
-                        ]);
+
+                        // $record->update([
+                        //     "code_etat_bp" => self::ACTIVATED //atribuée
+                        // ]);
+
+                        $refSms = Str::random(10);
+
+                        $telephone = 22891568182;
+
+                        $message = "Mr ".strtoupper($record->nom_abonne). " ".strtoupper($record->prenom_abonne).", NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE NUMERO ".$record->designation_bp." VOUS A ETE ATTRIBUEE." ;
+
+                        $dateSms = Carbon::parse(today())->format("d/m/y");
+
+                        $origine = "0";
+
+                        $bureau = BureauPoste::find($record->code_bureau);
+
+                        if(!is_null($bureau))
+                        {
+                            $origine = $bureau->libelle_poste;
+                        }
+                        else $origine = $record->code_bureau;
 
                         Notification::make("valide")
                             ->body("Boîte postale attribuée")
                             ->color(Color::Green)
                             ->send();
 
+                        StoredProcedures::sendSms($refSms, $telephone ,$message , $dateSms, $origine);
+            
+                    }),
+
+                    Action::make("rejeter")
+                    ->color(Color::Red)
+                    ->action(function ($record) {
+                        // dd($record);
+                        // $record->update([
+                        //     "code_etat_bp" => self::REJECTED //atribuée
+                        // ]);
+
+                        $refSms = Str::random(10);
+
+                        $telephone = 22891568182;  //$record->telephone;
+
+                        $message = "Mr ".strtoupper($record->nom_abonne). " ".strtoupper($record->prenom_abonne).", NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE DE BOITE POSTALE A ETE REJETEE." ;
+
+                        $dateSms = Carbon::parse(today())->format("d/m/y");
+
+                        $bureau = BureauPoste::find($record->code_bureau);
+
+                        if(!is_null($bureau))
+                        {
+                            $origine = $bureau->libelle_poste;
+                        }
+                        else $origine = $record->code_bureau;
+
+                        Notification::make("REJETE")
+                            ->body("Boîte postale refusée")
+                            ->color(Color::Red)
+                            ->send();
+
+                        StoredProcedures::sendSms($refSms, $telephone ,$message , $dateSms, $origine);
+            
                     }),
             ])
 
@@ -157,21 +218,21 @@ class BoitesPostaleResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     // Tables\Actions\DeleteBulkAction::make(),
 
-                    BulkAction::make('Valider')
-                        ->color(Color::Green)
-                        ->requiresConfirmation()
-                        ->action(function (Collection $records) {
+                    // BulkAction::make('Valider')
+                    //     ->color(Color::Green)
+                    //     ->requiresConfirmation()
+                    //     ->action(function (Collection $records) {
 
-                            $records->each->update([
-                                "code_etat_bp" => self::ACTIVATED //atribuée
-                            ]);
+                    //         $records->each->update([
+                    //             "code_etat_bp" => self::ACTIVATED //atribuée
+                    //         ]);
 
-                            Notification::make("valide")
-                            ->body("Boîte postale attribuée")
-                            ->color(Color::Green)
-                            ->send();
+                    //         Notification::make("valide")
+                    //             ->body("Boîte postale attribuée")
+                    //             ->color(Color::Green)
+                    //             ->send();
 
-                        }),
+                    //     }),
                 ]),
             ]);
     }
