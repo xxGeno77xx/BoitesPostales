@@ -45,8 +45,9 @@ class ListBoitesPostales extends ListRecords
                 abonne.raison_sociale,
                 reglement.date_reglement,
                 boite.reglement.montant_reglement,
-                reglement.id_reglement
-
+                reglement.id_reglement,
+                boite.boite_postale.code_etat_bp,
+                boite.abonne.document_name
                 ",
 
             )

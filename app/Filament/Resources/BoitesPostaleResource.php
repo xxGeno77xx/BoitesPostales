@@ -2,6 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Forms\Components\IdentityViewer;
+use App\Tables\Columns\IdentityColumn;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use PDO;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -18,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\Action;
 use App\Procedures\StoredProcedures;
+use Illuminate\Support\Facades\Http;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Fieldset;
@@ -51,27 +56,70 @@ class BoitesPostaleResource extends Resource
         return $form
             ->schema([
 
-                Fieldset::make("Boîte")
+
+
+                Fieldset::make("Piece d'identité")
                     ->schema([
 
-                        TextInput::make("id_bp"),
+                        IdentityViewer::make("")
+                            ->columnSpanFull()
+                            ->viewData(['src' => 'https://ui-avatars.com/api/?name=John+Doe']),
+                    ]),
 
-                        Placeholder::make("code_bureau")
-                            ->content(fn($state) => $state)
-                            ->label("Bureau de poste"),
+                Fieldset::make("Informations de l'abonné")
+                    ->schema([
 
-                        TextInput::make("designation_bp")
-                            ->label("Numéro boîte"),
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make("nom_abonne")
+                                    ->label("Nom abonné")
+                                    ->placeholder("-"),
 
-                        Select::make("code_etat_bp")
-                            ->label("Etat")
-                            ->native(false)
-                            ->options(Etat::pluck("libelle_etat_bp", "code_etat_bp")),
-                    ])
+                                TextInput::make("prenom_abonne")
+                                    ->label("Prénom abonné"),
+
+                                TextInput::make("raison_sociale")
+                                    ->label("Raison sociale")
+                                    ->placeholder("-"),
+                            ])
 
 
 
+                        // Select::make("code_etat_bp")
+                        //     ->label("Etat")
+                        //     ->native(false)
+                        //     ->options(Etat::pluck("libelle_etat_bp", "code_etat_bp")),
+                    ]),
 
+                Fieldset::make("Règlement")
+                    ->schema([
+
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make("id_reglement")
+                                    ->label("ID paiement")
+                                    ->placeholder("-"),
+
+                                DatePicker::make("date_reglement")
+                                    ->label("Date du règlement")
+                                    ->format('d/m/Y'),
+
+
+                                TextInput::make("code_bureau")
+                                    ->label("Bureau de poste"),
+
+                                TextInput::make("designation_bp")
+                                    ->label("Numéro boîte"),
+
+                                DatePicker::make("debut_contrat")
+                                    ->label("Début du contrat")
+                                    ->format('d/m/Y'),
+
+                                DatePicker::make("fin_contrat")
+                                    ->label("Fin du contrat")
+                                    ->format('d/m/Y'),
+                            ])
+                    ]),
             ]);
     }
 
@@ -138,12 +186,20 @@ class BoitesPostaleResource extends Resource
                     ->color(Color::Blue)
                     ->placeholder("-"),
 
+                // IdentityColumn::make("piece")
+
+
             ])
             ->filters([
                 //
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
+
+                Action::make("api")
+                    ->action(function ($record) {
+                        dd($record);
+                    }),
 
                 Action::make("valider")
                     ->color(Color::Green)
@@ -152,12 +208,12 @@ class BoitesPostaleResource extends Resource
                         // $record->update([
                         //     "code_etat_bp" => self::ACTIVATED //atribuée
                         // ]);
-
+            
                         $refSms = Str::random(10);
 
                         $telephone = 22891568182;
 
-                        $message = "Mr ".strtoupper($record->nom_abonne). " ".strtoupper($record->prenom_abonne).", NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE NUMERO ".$record->designation_bp." VOUS A ETE ATTRIBUEE." ;
+                        $message = "Mr " . strtoupper($record->nom_abonne) . " " . strtoupper($record->prenom_abonne) . ", NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE NUMERO " . $record->designation_bp . " VOUS A ETE ATTRIBUEE.";
 
                         $dateSms = Carbon::parse(today())->format("d/m/y");
 
@@ -165,52 +221,50 @@ class BoitesPostaleResource extends Resource
 
                         $bureau = BureauPoste::find($record->code_bureau);
 
-                        if(!is_null($bureau))
-                        {
+                        if (!is_null($bureau)) {
                             $origine = $bureau->libelle_poste;
-                        }
-                        else $origine = $record->code_bureau;
+                        } else
+                            $origine = $record->code_bureau;
 
                         Notification::make("valide")
                             ->body("Boîte postale attribuée")
                             ->color(Color::Green)
                             ->send();
 
-                        StoredProcedures::sendSms($refSms, $telephone ,$message , $dateSms, $origine);
-            
+                        StoredProcedures::sendSms($refSms, $telephone, $message, $dateSms, $origine);
+
                     }),
 
-                    Action::make("rejeter")
+                Action::make("rejeter")
                     ->color(Color::Red)
                     ->action(function ($record) {
                         // dd($record);
                         // $record->update([
                         //     "code_etat_bp" => self::REJECTED //atribuée
                         // ]);
-
+            
                         $refSms = Str::random(10);
 
                         $telephone = 22891568182;  //$record->telephone;
-
-                        $message = "Mr ".strtoupper($record->nom_abonne). " ".strtoupper($record->prenom_abonne).", NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE DE BOITE POSTALE A ETE REJETEE." ;
+            
+                        $message = "Mr " . strtoupper($record->nom_abonne) . " " . strtoupper($record->prenom_abonne) . ", NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE DE BOITE POSTALE A ETE REJETEE.";
 
                         $dateSms = Carbon::parse(today())->format("d/m/y");
 
                         $bureau = BureauPoste::find($record->code_bureau);
 
-                        if(!is_null($bureau))
-                        {
+                        if (!is_null($bureau)) {
                             $origine = $bureau->libelle_poste;
-                        }
-                        else $origine = $record->code_bureau;
+                        } else
+                            $origine = $record->code_bureau;
 
                         Notification::make("REJETE")
                             ->body("Boîte postale refusée")
                             ->color(Color::Red)
                             ->send();
 
-                        StoredProcedures::sendSms($refSms, $telephone ,$message , $dateSms, $origine);
-            
+                        StoredProcedures::sendSms($refSms, $telephone, $message, $dateSms, $origine);
+
                     }),
             ])
 
@@ -250,7 +304,7 @@ class BoitesPostaleResource extends Resource
         return [
             'index' => Pages\ListBoitesPostales::route('/'),
             'create' => Pages\CreateBoitesPostale::route('/create'),
-            'edit' => Pages\EditBoitesPostale::route('/{record}/edit'),
+            // 'edit' => Pages\EditBoitesPostale::route('/{record}/edit'),
         ];
     }
 }
