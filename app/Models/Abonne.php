@@ -9,9 +9,7 @@ class Abonne extends Model
 {
     use HasFactory;
 
+    protected $table = 'boite.abonne';
 
-    protected $table = "boite.abonne" ;
-
-    protected $primaryKey  = "id_abonne" ;
-
+    protected $primaryKey = 'id_abonne';
 }

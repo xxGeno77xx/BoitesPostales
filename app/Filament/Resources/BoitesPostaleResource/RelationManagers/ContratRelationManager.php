@@ -2,15 +2,13 @@
 
 namespace App\Filament\Resources\BoitesPostaleResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Tables;
 use App\Models\Contrat;
+use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Tables\Actions\Action;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ContratRelationManager extends RelationManager
 {
@@ -30,7 +28,7 @@ class ContratRelationManager extends RelationManager
     {
         return $table
         // ->recordTitleAttribute("boite.contrat.ref_contrat")
-             ->columns([
+            ->columns([
                 Tables\Columns\TextColumn::make('ref_contrat')->searchable(),
                 Tables\Columns\TextColumn::make('utilisateur'),
                 Tables\Columns\TextColumn::make('id_service'),
@@ -45,7 +43,7 @@ class ContratRelationManager extends RelationManager
             ])
             ->actions([
                 // Tables\Actions\EditAction::make() ,
-              
+
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -55,9 +53,7 @@ class ContratRelationManager extends RelationManager
             ]);
     }
 
-
-    
-    // protected function getTableQuery(): Builder  
+    // protected function getTableQuery(): Builder
     // {
     //  $parent = $this->getOwnerRecord();
 

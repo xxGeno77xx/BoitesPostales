@@ -10,6 +10,6 @@ class DbaUser extends Model
     use HasFactory;
 
     protected $table = 'DBA_USERS';
-    protected $connection = 'oracle';
 
+    protected $connection = 'oracle';
 }

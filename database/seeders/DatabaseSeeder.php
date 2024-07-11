@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'b_postales@laposte.tg', //  myself
             'password' => Hash::make('L@poste+2024'),
             'name' => 'b_postales',
-            'username' => 'b_postales',         
+            'username' => 'b_postales',
         ]);
     }
 }

@@ -2,27 +2,26 @@
 
 namespace App\Procedures;
 
-use PDO;
+use Filament\Notifications\Notification;
 use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\DB;
-use Filament\Notifications\Notification;
+use PDO;
 
 class StoredProcedures
 {
-
     public static function sendSms($refSms, $telephone, $message, $dateSms, $origine): array
     {
 
         try {
             $pdo = DB::getPdo();
 
-            $procedure = $pdo->prepare("begin imobile.sendsms(:refSms,
+            $procedure = $pdo->prepare('begin imobile.sendsms(:refSms,
                 :telephone,
                 :message,
                 :dateSms,
                 :origine,
                 :code,
-                :info); end;");
+                :info); end;');
 
             $code = str_repeat(' ', 10);  // Pré-allocation de l'espace pour les variables OUT
             $info = str_repeat(' ', 100);
@@ -37,10 +36,9 @@ class StoredProcedures
 
             $procedure->execute();
 
-
         } catch (\Exception $e) {
-        
-            Notification::make("error")
+
+            Notification::make('error')
                 ->color(Color::Red)
                 ->body("Erreur lors de l'envoi du SMS")
                 ->send();
@@ -48,7 +46,4 @@ class StoredProcedures
 
         return [$code, $info];
     }
-
-
-
 }
