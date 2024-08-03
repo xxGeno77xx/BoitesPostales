@@ -20,6 +20,7 @@ class Functions
         //updates record and sets parameters for sms
         // ------------------------------------------
 
+        //uncomment below in prod
         // $record->update([
         //     "code_etat_bp" => self::ACTIVATED //atribuée
         // ]);
@@ -61,6 +62,7 @@ class Functions
         //updates record and sets parameters for sms
         // ------------------------------------------
 
+        //uncomment below in prod
         // $record->update([
         //     "code_etat_bp" => self::REJECTED //atribuée
         // ]);
@@ -107,14 +109,20 @@ class Functions
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
 
+
+
+    /** 
+     * @function sends rejection sms via stored procedure
+     */
+
     public static function sendRejection($record)
     {
-        // sends rejection sms via stored procedure
+        
 
         $data = self::setRejectionParameters($record);
 
         Notification::make('valide')
-            ->body('Boîte postale attribuée')
+            ->body('Boîte postale rejetée')
             ->color(Color::Red)
             ->send();
 

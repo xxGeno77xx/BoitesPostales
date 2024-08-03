@@ -2,28 +2,31 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Etat;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\BureauPoste;
+use App\Functions\Functions;
+use App\Models\BoitesPostale;
+use Filament\Resources\Resource;
+use Filament\Support\Colors\Color;
+use Illuminate\Support\Facades\DB;
+use Filament\Forms\Components\Grid;
+use Filament\Tables\Actions\Action;
+use Filament\Forms\Components\Select;
+use App\Tables\Columns\IdentityColumn;
+use Filament\Forms\Components\Fieldset;
+use Filament\Tables\Columns\TextColumn;
+use App\Forms\Components\IdentityViewer;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Placeholder;
 use App\Filament\Resources\BoitesPostaleResource\Pages;
 use App\Filament\Resources\BoitesPostaleResource\RelationManagers\AbonneRelationManager;
 use App\Filament\Resources\BoitesPostaleResource\RelationManagers\ContratRelationManager;
-use App\Forms\Components\IdentityViewer;
-use App\Functions\Functions;
-use App\Models\BoitesPostale;
-use App\Models\BureauPoste;
-use App\Models\Etat;
-use App\Tables\Columns\IdentityColumn;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Support\Colors\Color;
-use Filament\Tables;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
 
 class BoitesPostaleResource extends Resource
 {
@@ -38,13 +41,21 @@ class BoitesPostaleResource extends Resource
                 Fieldset::make("Piece d'identité")
                     ->schema([
 
-                        IdentityViewer::make('')
+                        IdentityViewer::make("identite_piece"),
+                        
+                        FileUpload::make("document_name")
+                            ->label("")
+                            ->preserveFilenames()
+                            ->imageEditor(true)
                             ->columnSpanFull()
-                        // ->viewData(['src' => 'https://ui-avatars.com/api/?name=John+Doe'])
-                        ,
-                    ]),
+                            ->hiddenOn("view")
+
+                    ])
+                    ,
 
                 Fieldset::make("Informations de l'abonné")
+
+                    ->hiddenOn("edit")
                     ->schema([
 
                         Grid::make(3)
@@ -61,13 +72,10 @@ class BoitesPostaleResource extends Resource
                                     ->placeholder('-'),
                             ]),
 
-                        // Select::make("code_etat_bp")
-                        //     ->label("Etat")
-                        //     ->native(false)
-                        //     ->options(Etat::pluck("libelle_etat_bp", "code_etat_bp")),
                     ]),
 
                 Fieldset::make('Règlement')
+                    ->hiddenOn("edit")
                     ->schema([
 
                         Grid::make(3)
@@ -105,7 +113,13 @@ class BoitesPostaleResource extends Resource
 
                 // TextColumn::make("id_bp")
                 //     ->label("ID de la boîte")
-                //     ->placeholder("-"),
+                //     ->placeholder("-")
+                //     ->searchable(query: function (Builder $query, string $search): Builder {
+
+                //         return $query->selectRaw('boite.boite_postale.id_bp')
+                //             ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
+
+                //     }),
 
                 TextColumn::make('id_reglement')
                     ->label('ID paiement')
@@ -152,7 +166,15 @@ class BoitesPostaleResource extends Resource
 
                 TextColumn::make('code_bureau')
                     ->label('Bureau de poste')
-                    ->formatStateUsing(fn ($state) => BureauPoste::find($state) ? BureauPoste::find($state)->libelle_poste : $state)
+                    ->formatStateUsing(function ($state) {
+
+
+                        $bureauPoste = DB::table("spt.bureau_poste")->whereRaw("code_bureau = ?", [$state])->first();
+
+                        $libellePoste = $bureauPoste ? $bureauPoste->libelle_poste : $state;
+
+                        return $libellePoste;
+                    })
                     ->placeholder('-'),
 
                 TextColumn::make('designation_bp')
@@ -168,6 +190,8 @@ class BoitesPostaleResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\EditAction::make(),
+
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([
                         Action::make('valider')
@@ -192,16 +216,20 @@ class BoitesPostaleResource extends Resource
                     ]),
 
                 Action::make('valider')
+                    ->requiresConfirmation()
                     ->color(Color::Green)
                     ->icon('heroicon-o-check-circle')
+                    ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ?"))
                     ->action(function ($record) {
-
+                        dd($record);
                         Functions::sendValidation($record);
 
                     }),
 
                 Action::make('rejeter')
+                ->requiresConfirmation()
                     ->color(Color::Red)
+                    ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." pour la bôite postale numéro". $record->designation_bp." ?"))
                     ->icon('heroicon-o-x-circle')
                     ->action(function ($record) {
 

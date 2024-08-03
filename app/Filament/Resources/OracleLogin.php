@@ -62,13 +62,7 @@ class OracleLogin extends Login
     public function authenticate(): ?LoginResponse
     {
 
-        // $connString = "(DESCRIPTION =(ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.60.34)(PORT = 5500))) (CONNECT_DATA = (SERVICE_NAME = dbpost)))";
-
-        // $authenticationLimit = config('app.LOGIN_LIMIT', 4);
-
         $data = $this->form->getState();
-
-        // oci_connect(strtoupper($data['username']), $data['password'],  $connString);
 
         $oracleuser = DbaUser::where('username', strtoupper($data['username']))->first();
 
@@ -217,7 +211,7 @@ class OracleLogin extends Login
     /**
      * @return array<Action | ActionGroup>
      */
-    protected function getFormActions(): array
+    public function getFormActions(): array
     {
         return [
             $this->getAuthenticateFormAction(),
