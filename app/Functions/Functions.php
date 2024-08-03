@@ -15,11 +15,13 @@ class Functions
 
     const REJECTED = 7;
 
+
+     /** 
+     * @function updates record and sets parameters for sms
+     */
+
     public static function setValidationParameters($record)
     {
-        //updates record and sets parameters for sms
-        // ------------------------------------------
-
         //uncomment below in prod
         // $record->update([
         //     "code_etat_bp" => self::ACTIVATED //atribuée
@@ -57,10 +59,13 @@ class Functions
 
     }
 
+    /** 
+     * @function   //updates record and sets parameters for sms
+     */
+
     public static function setRejectionParameters($record)
     {
-        //updates record and sets parameters for sms
-        // ------------------------------------------
+       
 
         //uncomment below in prod
         // $record->update([
@@ -95,10 +100,13 @@ class Functions
 
     }
 
+    /** 
+     * @function  // sends validation sms via stored procedure
+     */
+
     public static function sendValidation($record)
     {
-        // sends validation sms via stored procedure
-
+       
         $data = Functions::setValidationParameters($record);
 
         Notification::make('valide')
@@ -108,7 +116,6 @@ class Functions
 
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
-
 
 
     /** 

@@ -219,9 +219,9 @@ class BoitesPostaleResource extends Resource
                     ->requiresConfirmation()
                     ->color(Color::Green)
                     ->icon('heroicon-o-check-circle')
-                    ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ?"))
+                    // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." ?"))
                     ->action(function ($record) {
-                        dd($record);
+                         
                         Functions::sendValidation($record);
 
                     }),
@@ -229,10 +229,10 @@ class BoitesPostaleResource extends Resource
                 Action::make('rejeter')
                 ->requiresConfirmation()
                     ->color(Color::Red)
-                    ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." pour la bôite postale numéro". $record->designation_bp." ?"))
+                    // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." pour la bôite postale numéro". $record->designation_bp." ?"))
                     ->icon('heroicon-o-x-circle')
                     ->action(function ($record) {
-
+ 
                         Functions::sendRejection($record);
 
                     }),
