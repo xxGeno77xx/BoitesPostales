@@ -26,7 +26,7 @@ class ListBoitesPostales extends ListRecords
             ->join('boite.etat_bp', 'boite.etat_bp.code_etat_bp', 'boite.boite_postale.code_etat_bp')
             ->join('boite.contrat', 'boite.contrat.id_bp', 'boite.boite_postale.id_bp')
             ->join('boite.abonne', 'boite.abonne.id_abonne', 'boite.contrat.id_abonne')
-            ->join('boite.reglement', 'boite.reglement.id_operation', 'boite.contrat.id_operation')
+            ->leftjoin('boite.reglement', 'boite.reglement.id_operation', 'boite.contrat.id_operation')
             ->selectRaw(
 
                 '
@@ -44,9 +44,11 @@ class ListBoitesPostales extends ListRecords
                 reglement.id_reglement,
                 boite.boite_postale.code_etat_bp,
                 boite.abonne.document_name
-                ',
+                '
 
             )
-            ->whereRaw('boite.boite_postale.code_etat_bp = ?', [6]);
+             ->whereRaw('boite.boite_postale.code_etat_bp = ?', [6])
+             ->whereNotNull("document_name")
+             ->orderby("date_reglement", "desc");
     }
 }

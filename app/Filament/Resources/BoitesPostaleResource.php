@@ -39,9 +39,10 @@ class BoitesPostaleResource extends Resource
         return $form
             ->schema([
                 Fieldset::make("Piece d'identité")
+                ->columnSpanFull()
                     ->schema([
 
-                        IdentityViewer::make("identite_piece"),
+                        IdentityViewer::make(""),
                         
                         FileUpload::make("document_name")
                             ->label("")
@@ -81,7 +82,7 @@ class BoitesPostaleResource extends Resource
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('id_reglement')
-                                    ->label('ID paiement')
+                                    ->label('ID règlement')
                                     ->placeholder('-'),
 
                                 DatePicker::make('date_reglement')
@@ -122,16 +123,26 @@ class BoitesPostaleResource extends Resource
                 //     }),
 
                 TextColumn::make('id_reglement')
-                    ->label('ID paiement')
+                    ->label('ID règlement')
                     ->placeholder('-'),
 
                 TextColumn::make('nom_abonne')
                     ->label('Nom abonné')
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+
+                        return $query->selectRaw('nom')->whereRaw('LOWER(nom) LIKE ?', ['%'.strtolower($search).'%']);
+
+                    }),
 
                 TextColumn::make('prenom_abonne')
                     ->label('Prénom abonné')
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+
+                        return $query->selectRaw('prenoms')->whereRaw('LOWER(prenoms) LIKE ?', ['%'.strtolower($search).'%']);
+
+                    }),
 
                 TextColumn::make('raison_sociale')
                     ->label('Raison sociale')

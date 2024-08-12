@@ -22,14 +22,13 @@ class Functions
 
     public static function setValidationParameters($record)
     {
-        //uncomment below in prod
-        // $record->update([
-        //     "code_etat_bp" => self::ACTIVATED //atribuée
-        // ]);
+        $record->update([
+            "code_etat_bp" => self::ACTIVATED //atribuée
+        ]);
 
         $refSms = Str::random(10);
 
-        $telephone = 22891568182;  //record->telephone
+        $telephone = 22890658724;  //record->telephone
 
         $message = 'Mr '.strtoupper($record->nom_abonne).' '.strtoupper($record->prenom_abonne).', NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE NUMERO '.$record->designation_bp.' VOUS A ETE ATTRIBUEE.';
 
@@ -67,14 +66,13 @@ class Functions
     {
        
 
-        //uncomment below in prod
-        // $record->update([
-        //     "code_etat_bp" => self::REJECTED //atribuée
-        // ]);
+        $record->update([
+            "code_etat_bp" => self::REJECTED //atribuée
+        ]);
 
         $refSms = Str::random(10);
 
-        $telephone = 22891568182;  //$record->telephone;
+        $telephone = 22890658724;  //$record->telephone;
 
         $message = 'Mr '.strtoupper($record->nom_abonne).' '.strtoupper($record->prenom_abonne).', NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE DE BOITE POSTALE A ETE REJETEE.';
 
