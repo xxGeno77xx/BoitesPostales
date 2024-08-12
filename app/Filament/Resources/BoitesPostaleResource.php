@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Carbon\Carbon;
 use App\Models\Etat;
 use Filament\Tables;
 use Filament\Forms\Form;
@@ -14,6 +15,7 @@ use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
 use App\Tables\Columns\IdentityColumn;
 use Filament\Forms\Components\Fieldset;
@@ -198,7 +200,47 @@ class BoitesPostaleResource extends Resource
 
             ])
             ->filters([
-                //
+
+     
+                Filter::make('date_reglement')
+                ->label('Date du règlement')
+                ->form([
+
+                    Fieldset::make("date_reglement")
+                    ->label("Date du règlement")
+                    ->schema([
+                          Grid::make(2)
+                        ->schema([
+
+                            DatePicker::make('date_from')
+                                ->label('Du'),
+
+                            DatePicker::make('date_to')
+                                ->label('Au'),
+
+                        ])->columns(1),
+                        ]),
+                  
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['date_from'],
+                            fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '>=', $date),
+                        )
+                        ->when(
+                            $data['date_to'],
+                            fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '<=', $date),
+                        );
+                })
+                ->indicateUsing(function (array $data): ?string {
+                    if (($data['date_from']) && ($data['date_from'])) {
+                        return 'Date du règlement:  ' . Carbon::parse($data['date_from'])->format('d-m-Y') . ' au ' . Carbon::parse($data['date_to'])->format('d-m-Y');
+                    }
+
+                    return null;
+                }),
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -252,7 +294,8 @@ class BoitesPostaleResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                 ]),
-            ]);
+            ])
+            ->deferFilters();
     }
 
     public static function getRelations(): array
