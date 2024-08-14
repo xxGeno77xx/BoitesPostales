@@ -1,6 +1,6 @@
 @php
     use App\Models\BureauPoste;
-    $bureau = BureauPoste::find($record->code_bureau)->first();
+    $bureau = BureauPoste::find($record->code_bureau) ;
 @endphp
 
 <!DOCTYPE html>
@@ -68,17 +68,20 @@
         }
 
         .container {
-            display: flex; /* Aligne les éléments enfants côte à côte */
-            align-items: flex-start; /* Aligne les éléments en haut */
-            gap: 20px; /* Espacement entre les éléments */
-        }
-        .image-container img {
-            max-width: 100%; /* Ajuste l'image à la taille du conteneur */
-            height: auto; /* Conserve les proportions de l'image */
+            position: relative; /* Nécessaire pour positionner les éléments internes */
+            width: 100%;
+            height: 300px; /* Hauteur de la grande div, ajustez selon vos besoins */
+            background-image: url('logo_poste.png'); /* URL de l'image */
+            background-position: top left; /* Positionne l'image en haut à gauche */
+            background-size: cover; /* Couvre tout le conteneur tout en conservant le ratio de l'image */
+            background-repeat: no-repeat; /* Évite la répétition de l'image */
+            color: white; /* Assure que le texte est lisible sur l'image */
+            padding: 20px; /* Espace autour du texte */
         }
         .content-container {
-            display: flex;
-            flex-direction: column; /* Aligne les éléments de texte verticalement */
+            position: absolute; /* Permet de placer le texte par-dessus l'image */
+            top: 20px; /* Espacement du haut */
+            left: 20px; /* Espacement du gauche */
         }
         .content-container p, .content-container h1 {
             margin: 0; /* Supprime les marges par défaut */
@@ -91,7 +94,6 @@
 
 <body>
 
-  {{-- <img src="logo_poste.png" alt="Logo" class="logo">
 
     <p style="text-indent: 0pt; text-align: left"><br /></p>
 
@@ -99,18 +101,8 @@
 
     <p class="s2">SOCIETE DES POSTES DU TOGO</p>
 
-    <h1 class="s2">CONTRAT D'ABONNEMENT A LA BOITE POSTALE</h1> --}}
+    <h1 class="s2">CONTRAT D'ABONNEMENT A LA BOITE POSTALE</h1>
 
-    <div class="container">
-      <div class="image-container">
-          <img src="logo_poste.png" alt="Logo">
-      </div>
-      <div class="content-container">
-          <p class="s1">LA POSTE</p>
-          <p class="s2">SOCIETE DES POSTES DU TOGO</p>
-          <h1 class="s2">CONTRAT D'ABONNEMENT A LA BOITE POSTALE</h1>
-      </div>
-  </div>
 
     <br>
 
@@ -119,8 +111,12 @@
     </p>
 
     <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
-        Référence contrat : {{ $record->ref_contrat }} Entre les soussignés
+        Référence contrat : {{ $record->ref_contrat }} 
     </p>
+
+    <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
+      Entre les soussignés
+  </p>
 
     <br>
     <br>

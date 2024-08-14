@@ -310,9 +310,9 @@ class BoitesPostaleResource extends Resource
                     ->formatStateUsing(function ($state) {
 
 
-                        $bureauPoste = DB::table("spt.bureau_poste")->whereRaw("code_bureau = ?", [$state])->first();
+                        $bureauPoste = DB::table("boite.bureau")->whereRaw("code_bureau = ?", [$state])->first();
 
-                        $libellePoste = $bureauPoste ? $bureauPoste->libelle_poste : $state;
+                        $libellePoste = $bureauPoste ? $bureauPoste->designation_buro : $state;
 
                         return $libellePoste;
                     })
