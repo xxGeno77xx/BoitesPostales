@@ -66,26 +66,21 @@ class OracleLogin extends Login
 
         $oracleuser = DbaUser::where('username', strtoupper($data['username']))->first();
 
+        
+                                                          
+        
+
         try {
 
             $this->rateLimit(5);
 
             try {
 
-                $numeroCaisse = DB::table('caissier')->whereRaw('rtrim(nom_caissier) = rtrim(?)', [$oracleuser->name])->first();
+                $numeroCaisse = DB::table('spt.caissier')->whereRaw('LOWER(spt.caissier.nom_caissier) = LOWER(rtrim(?))', [($oracleuser->username)])->first()->code_agence;
 
                 $conn = oci_connect(strtoupper($data['username']), $data['password'], env('CONNECTION'));
 
-                if ($numeroCaisse != null) {
-                    SessionCaisse::create([
-                        'numero_caisse' => $numeroCaisse->numero_caisse,
-                        'numero_caissier' => $numeroCaisse->numero_caissier,
-                        'date_session' => today(),
-                        'utilisateur' => strtoupper($data['username']),
-                        'numero_session' => SessionCaisse::orderBy('numero_session', 'desc')->first()->numero_session,
-                    ]);
-
-                }
+                
 
             } catch (\ErrorException $e) {
 
@@ -124,6 +119,7 @@ class OracleLogin extends Login
                 'password' => Hash::make('L@poste+2024'),
                 'name' => $data['username'],
                 'username' => $data['username'],
+                'code_bureau' => $numeroCaisse
             ]);
 
             $newUser = User::where('name', $data['username'])->first();

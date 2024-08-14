@@ -9,7 +9,7 @@ class BureauPoste extends Model
 {
     use HasFactory;
 
-    protected $table = 'spt.bureau_poste';
+    protected $table = 'boite.bureau';
 
     protected $primaryKey = 'code_bureau';
 }

@@ -10,6 +10,7 @@ use Filament\Tables\Table;
 use App\Models\BureauPoste;
 use App\Functions\Functions;
 use App\Models\BoitesPostale;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Resources\Resource;
 use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\DB;
@@ -17,9 +18,11 @@ use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
+use Illuminate\Support\Facades\Blade;
 use App\Tables\Columns\IdentityColumn;
 use Filament\Forms\Components\Fieldset;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
 use App\Forms\Components\IdentityViewer;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
@@ -41,11 +44,11 @@ class BoitesPostaleResource extends Resource
         return $form
             ->schema([
                 Fieldset::make("Piece d'identité")
-                ->columnSpanFull()
+                    ->columnSpanFull()
                     ->schema([
 
                         IdentityViewer::make(""),
-                        
+
                         FileUpload::make("document_name")
                             ->label("")
                             ->preserveFilenames()
@@ -54,7 +57,7 @@ class BoitesPostaleResource extends Resource
                             ->hiddenOn("view")
 
                     ])
-                    ,
+                ,
 
                 Fieldset::make("Informations de l'abonné")
 
@@ -63,16 +66,137 @@ class BoitesPostaleResource extends Resource
 
                         Grid::make(3)
                             ->schema([
+                                TextInput::make('ref_contrat')
+                                    ->label('Référence du contrat')
+                                    ->placeholder('-'),
+
                                 TextInput::make('nom_abonne')
                                     ->label('Nom abonné')
                                     ->placeholder('-'),
 
                                 TextInput::make('prenom_abonne')
-                                    ->label('Prénom abonné'),
+                                    ->label('Prénom abonné')
+                                    ->placeholder('-'),
 
                                 TextInput::make('raison_sociale')
                                     ->label('Raison sociale')
                                     ->placeholder('-'),
+
+                                TextInput::make('id_bp')
+                                    ->label('id_bp')
+                                    ->placeholder('-'),
+
+                                TextInput::make('telephone')
+                                    ->label('telephone')
+                                    ->placeholder('-'),
+
+                                TextInput::make('raison_sociale')
+                                    ->label('Raison sociale')
+                                    ->placeholder('-'),
+
+                                TextInput::make('montant_reglement')
+                                    ->label('montant_reglement')
+                                    ->placeholder('-'),
+
+
+                                TextInput::make('tel_fixe')
+                                    ->label('tel_fixe')
+                                    ->placeholder('-'),
+
+                                TextInput::make('num_piece')
+                                    ->label('num_piece')
+                                    ->placeholder('-'),
+
+
+                                TextInput::make('titre')
+                                    ->label('titre')
+                                    ->placeholder('-'),
+
+                                DatePicker::make('date_deliv_piece')
+                                    ->label('date_deliv_piece')
+                                    ->format('d/m/Y')
+                                    ->placeholder('-'),
+
+                                TextInput::make('autorite_deliv_piece')
+                                    ->label('autorite_deliv_piece')
+                                    ->placeholder('-'),
+
+                                TextInput::make('tel_mobile')
+                                    ->label('tel_mobile')
+                                    ->placeholder('-'),
+
+
+                                TextInput::make('email')
+                                    ->label('email')
+                                    ->placeholder('-'),
+
+
+                                TextInput::make('nom_maison')
+                                    ->label('nom_maison')
+                                    ->placeholder('-'),
+
+                                TextInput::make('raison_sociale')
+                                    ->label('Raison sociale')
+                                    ->placeholder('-'),
+
+
+                                TextInput::make('num_maison')
+                                    ->label('num_maison')
+                                    ->placeholder('-'),
+
+                                TextInput::make('nom_rue')
+                                    ->label('nom_rue')
+                                    ->placeholder('-'),
+
+                                TextInput::make('num_rue')
+                                    ->label('num_rue')
+                                    ->placeholder('-'),
+
+                                TextInput::make('quartier')
+                                    ->label('quartier')
+                                    ->placeholder('-'),
+
+                                TextInput::make('premier_resp')
+                                    ->label('premier_resp')
+                                    ->placeholder('-'),
+
+                                DatePicker::make('datenais')
+                                    ->label('datenais')
+                                    ->format('d/m/Y')
+                                    ->placeholder('-'),
+
+                                TextInput::make('num_cpte')
+                                    ->label('num_cpte')
+                                    ->placeholder('-'),
+
+                                TextInput::make('libelle_categ_prof')
+                                    ->label('libelle_categ_prof')
+                                    ->placeholder('-'),
+
+                                TextInput::make('libelle_ville')
+                                    ->label('Ville')
+                                    ->placeholder('-'),
+
+                                TextInput::make('banque')
+                                    ->label('banque')
+                                    ->placeholder('-'),
+
+                                TextInput::make('email2')
+                                    ->label('email2')
+                                    ->placeholder('-'),
+
+                                TextInput::make('libelle_piece')
+                                    ->label('libelle_piece')
+                                    ->placeholder('-'),
+                                    
+                                TextInput::make('infos_compl')
+                                    ->label('infos_compl')
+                                    ->placeholder('-'),
+
+                                    TextInput::make('id_operation')
+                                    ->label('id_operation')
+                                    ->placeholder('-'),
+
                             ]),
 
                     ]),
@@ -95,13 +219,13 @@ class BoitesPostaleResource extends Resource
                                     ->label('Bureau de poste'),
 
                                 TextInput::make('designation_bp')
-                                    ->label('Numéro boîte'),
+                                    ->label('Désignation boîte'),
 
-                                DatePicker::make('debut_contrat')
+                                DatePicker::make('date_debut_contrat')
                                     ->label('Début du contrat')
                                     ->format('d/m/Y'),
 
-                                DatePicker::make('fin_contrat')
+                                DatePicker::make('date_fin_contrat')
                                     ->label('Fin du contrat')
                                     ->format('d/m/Y'),
                             ]),
@@ -114,15 +238,19 @@ class BoitesPostaleResource extends Resource
         return $table
             ->columns([
 
-                // TextColumn::make("id_bp")
-                //     ->label("ID de la boîte")
-                //     ->placeholder("-")
-                //     ->searchable(query: function (Builder $query, string $search): Builder {
+                TextColumn::make('ref_contrat')
+                ->label('Référence du contrat')
+                ->placeholder('-'),
 
-                //         return $query->selectRaw('boite.boite_postale.id_bp')
-                //             ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
+                TextColumn::make("id_bp")
+                    ->label("ID de la boîte")
+                    ->placeholder("-")
+                    ->searchable(query: function (Builder $query, string $search): Builder {
 
-                //     }),
+                        return $query->selectRaw('boite.boite_postale.id_bp')
+                            ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
+
+                    }),
 
                 TextColumn::make('id_reglement')
                     ->label('ID règlement')
@@ -133,7 +261,7 @@ class BoitesPostaleResource extends Resource
                     ->placeholder('-')
                     ->searchable(query: function (Builder $query, string $search): Builder {
 
-                        return $query->selectRaw('nom')->whereRaw('LOWER(nom) LIKE ?', ['%'.strtolower($search).'%']);
+                        return $query->selectRaw('nom')->whereRaw('LOWER(nom) LIKE ?', ['%' . strtolower($search) . '%']);
 
                     }),
 
@@ -142,7 +270,7 @@ class BoitesPostaleResource extends Resource
                     ->placeholder('-')
                     ->searchable(query: function (Builder $query, string $search): Builder {
 
-                        return $query->selectRaw('prenoms')->whereRaw('LOWER(prenoms) LIKE ?', ['%'.strtolower($search).'%']);
+                        return $query->selectRaw('prenoms')->whereRaw('LOWER(prenoms) LIKE ?', ['%' . strtolower($search) . '%']);
 
                     }),
 
@@ -165,13 +293,13 @@ class BoitesPostaleResource extends Resource
                 TextColumn::make('montant_reglement')
                     ->label('Montant'),
 
-                TextColumn::make('debut_contrat')
+                TextColumn::make('date_debut_contrat')
                     ->label('Début du contrat')
                     ->badge()
                     ->color(Color::Green)
                     ->date('d/m/y'),
 
-                TextColumn::make('fin_contrat')
+                TextColumn::make('date_fin_contrat')
                     ->label('Fin du contrat')
                     ->badge()
                     ->color(Color::Red)
@@ -191,7 +319,7 @@ class BoitesPostaleResource extends Resource
                     ->placeholder('-'),
 
                 TextColumn::make('designation_bp')
-                    ->label('Numéro boîte')
+                    ->label('Désignation boîte')
                     ->badge()
                     ->color(Color::Blue)
                     ->placeholder('-'),
@@ -201,45 +329,45 @@ class BoitesPostaleResource extends Resource
             ])
             ->filters([
 
-     
+
                 Filter::make('date_reglement')
-                ->label('Date du règlement')
-                ->form([
+                    ->label('Date du règlement')
+                    ->form([
 
-                    Fieldset::make("date_reglement")
-                    ->label("Date du règlement")
-                    ->schema([
-                          Grid::make(2)
-                        ->schema([
+                        Fieldset::make("date_reglement")
+                            ->label("Date du règlement")
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
 
-                            DatePicker::make('date_from')
-                                ->label('Du'),
+                                        DatePicker::make('date_from')
+                                            ->label('Du'),
 
-                            DatePicker::make('date_to')
-                                ->label('Au'),
+                                        DatePicker::make('date_to')
+                                            ->label('Au'),
 
-                        ])->columns(1),
-                        ]),
-                  
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['date_from'],
-                            fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '>=', $date),
-                        )
-                        ->when(
-                            $data['date_to'],
-                            fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '<=', $date),
-                        );
-                })
-                ->indicateUsing(function (array $data): ?string {
-                    if (($data['date_from']) && ($data['date_from'])) {
-                        return 'Date du règlement:  ' . Carbon::parse($data['date_from'])->format('d-m-Y') . ' au ' . Carbon::parse($data['date_to'])->format('d-m-Y');
-                    }
+                                    ])->columns(1),
+                            ]),
 
-                    return null;
-                }),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['date_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '>=', $date),
+                            )
+                            ->when(
+                                $data['date_to'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        if (($data['date_from']) && ($data['date_from'])) {
+                            return 'Date du règlement:  ' . Carbon::parse($data['date_from'])->format('d-m-Y') . ' au ' . Carbon::parse($data['date_to'])->format('d-m-Y');
+                        }
+
+                        return null;
+                    }),
 
             ])
             ->actions([
@@ -266,6 +394,22 @@ class BoitesPostaleResource extends Resource
                                 Functions::sendRejection($record);
 
                             }),
+
+                        Action::make('Télécharger')
+                            ->label("contrat")
+                            ->icon('heroicon-o-arrow-down-tray')
+                            ->color('success')
+                            // ->url(fn( array $record) => route('contrat.pdf.ddl', $record))
+                            ->action(function (Model $record) {
+
+                                return response()->streamDownload(function () use ($record) {
+                                    echo Pdf::loadHtml(
+                                        Blade::render('contrat', ['record' => $record])
+                                    )->stream();
+                                }, 'd.pdf');
+                            })
+
+
                     ]),
 
                 Action::make('valider')
@@ -274,18 +418,18 @@ class BoitesPostaleResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." ?"))
                     ->action(function ($record) {
-                         
+
                         Functions::sendValidation($record);
 
                     }),
 
                 Action::make('rejeter')
-                ->requiresConfirmation()
+                    ->requiresConfirmation()
                     ->color(Color::Red)
                     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." pour la bôite postale numéro". $record->designation_bp." ?"))
                     ->icon('heroicon-o-x-circle')
                     ->action(function ($record) {
- 
+
                         Functions::sendRejection($record);
 
                     }),

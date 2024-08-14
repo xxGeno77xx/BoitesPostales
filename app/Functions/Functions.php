@@ -2,12 +2,13 @@
 
 namespace App\Functions;
 
-use App\Models\BureauPoste;
-use App\Procedures\StoredProcedures;
 use Carbon\Carbon;
-use Filament\Notifications\Notification;
-use Filament\Support\Colors\Color;
+use App\Models\BureauPoste;
 use Illuminate\Support\Str;
+use Filament\Support\Colors\Color;
+use Illuminate\Support\Facades\DB;
+use App\Procedures\StoredProcedures;
+use Filament\Notifications\Notification;
 
 class Functions
 {
@@ -22,21 +23,25 @@ class Functions
 
     public static function setValidationParameters($record)
     {
-        $record->update([
-            "code_etat_bp" => self::ACTIVATED //atribuée
-        ]);
+        // $record->update([
+        //     "code_etat_bp" => self::ACTIVATED //atribuée
+        // ]);
 
+        
         $refSms = Str::random(10);
 
-        $telephone = 22890658724;  //record->telephone
+        $bureau = BureauPoste::find($record->code_bureau);
 
-        $message = 'Mr '.strtoupper($record->nom_abonne).' '.strtoupper($record->prenom_abonne).', NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE NUMERO '.$record->designation_bp.' VOUS A ETE ATTRIBUEE.';
+        $telephone = 22891568182;  //record->telephone
+
+        $message = 'NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE '.$bureau->code_postal_buro.' BP '.$record->designation_bp.' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE '.$bureau->designation_buro .' POUR SIGNER VOTRE CONTRAT.';
 
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
         $origine = '0';
+        
 
-        $bureau = BureauPoste::find($record->code_bureau);
+        
 
         if (! is_null($bureau)) {
 
@@ -66,15 +71,15 @@ class Functions
     {
        
 
-        $record->update([
-            "code_etat_bp" => self::REJECTED //atribuée
-        ]);
+        // $record->update([
+        //     "code_etat_bp" => self::REJECTED //atribuée
+        // ]);
 
         $refSms = Str::random(10);
 
-        $telephone = 22890658724;  //$record->telephone;
+        $telephone = 22891568182;  //$record->telephone;
 
-        $message = 'Mr '.strtoupper($record->nom_abonne).' '.strtoupper($record->prenom_abonne).', NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE DE BOITE POSTALE A ETE REJETEE.';
+        $message = 'NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE A ETE REJETEE.';
 
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
