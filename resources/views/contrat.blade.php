@@ -203,7 +203,7 @@
     <p style="padding-top: 2pt; padding-left: 5pt; text-indent: 0pt; line-height: 124%; text-align: left;">
         Il est concédé à l'abonné une boîte postale identifiée, <b>{{ $bureau?->code_postal_buro }} BP
             {{ $record->designation_bp }}</b>, localisée au bureau de poste de
-        LOME APEDOKOE.
+       {{$bureau->designation_buro}}
     </p>
 
     <p class="s3" style="padding-left: 5pt; text-indent: 0pt; text-align: left">
@@ -300,11 +300,6 @@
     <p class="s3" style="padding-left: 5pt; text-indent: 0pt; text-align: left">
         ARTICLE 9: <u> ENTREE EN VIGUEUR ET DENONCIATION </u>
     </p>
-
-    <p style="padding-top: 2pt; padding-left: 5pt; text-indent: 0pt; line-height: 124%; text-align: left;">
-        9.1. La date d'entrée en vigueur du contrat est la date d'abonnement.
-    </p>
-
 
     <p style="padding-top: 2pt; padding-left: 5pt; text-indent: 0pt; line-height: 124%; text-align: left;">
         9.1. La date d'entrée en vigueur du contrat est la date d'abonnement.

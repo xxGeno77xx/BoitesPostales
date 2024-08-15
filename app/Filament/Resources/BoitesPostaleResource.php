@@ -38,6 +38,7 @@ use App\Filament\Resources\BoitesPostaleResource\RelationManagers\ContratRelatio
 
 class BoitesPostaleResource extends Resource
 {
+    protected static ?string $label = 'Demandes en instance';
     protected static ?string $model = BoitesPostale::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -389,53 +390,56 @@ class BoitesPostaleResource extends Resource
                         Notification::make("created")
                             ->title("Enregistré(e)")
                             ->body("La demande a été enregisttrée")
-                            ->color("Color::Green")
+                            ->color(Color::Green)
                             ->send();
                     }),
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([
-                            Action::make('valider')
-                                ->icon('heroicon-o-check-circle')
-                                ->requiresConfirmation()
-                                ->color(Color::Green)
+                            
+
+                                Action::make("enregistrer")
                                 ->action(function ($record) {
+            
+                                    $sequence = DB::getSequence();
+            
+                                    $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
+            
+                                    try {
+            
+                                        Contrat::firstOrCreate([
+            
+                                            "ref_contrat" => $record->code_bureau . str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT) . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
+                                            "code_etat_contrat" => 3,
+                                            "contrat_source" => null,
+                                            "date_debut_contrat" => $record->date_reglement,
+                                            "date_derniere_facture" => $record->date_reglement,
+                                            "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($record->validite_annee),
+                                            "date_resiliation" => null,
+                                            "date_resiliation_off" => null,
+                                            "id_abonne" => $record->id_abonne,
+                                            "id_bp" => $record->id_bp,
+                                            "id_operation" => $record->id_operation,
+                                            "id_service" => 1,
+                                            "periodicite_facturation" => $record->periodicite_facturation,
+                                            "utilisateur" => strtoupper(auth()->user()->name),
+            
+                                        ]);
+                                    } catch (\Exception $e) {
+            
+                                    }
+            
+            
+                                    Notification::make("created")
+                                        ->title("Enregistré(e)")
+                                        ->body("La demande a été enregisttrée")
+                                        ->color(Color::Green)
+                                        ->send();
 
-                                    Functions::sendValidation($record);
-
-                                }),
-
-                            Action::make('rejeter')
-                                ->requiresConfirmation()
-                                ->icon('heroicon-o-x-circle')
-                                ->color(Color::Red)
-                                ->action(function ($record) {
-
-                                    Functions::sendRejection($record);
-
+                                    return redirect(route("filament.admin.resources.boites-postales.index"));
                                 }),
                         ]),
 
-                Action::make('valider')
-                    ->requiresConfirmation()
-                    ->color(Color::Green)
-                    ->icon('heroicon-o-check-circle')
-                    // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." ?"))
-                    ->action(function ($record) {
-
-                        Functions::sendValidation($record);
-
-                    }),
-
-                Action::make('rejeter')
-                    ->requiresConfirmation()
-                    ->color(Color::Red)
-                    // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." pour la bôite postale numéro". $record->designation_bp." ?"))
-                    ->icon('heroicon-o-x-circle')
-                    ->action(function ($record) {
-
-                        Functions::sendRejection($record);
-
-                    }),
+           
             ])
 
             ->bulkActions([

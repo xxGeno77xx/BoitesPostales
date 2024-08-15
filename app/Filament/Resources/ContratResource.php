@@ -33,6 +33,8 @@ class ContratResource extends Resource
 {
     protected static ?string $model = Contrat::class;
 
+    protected static ?string $label = 'Validation des contrats';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -374,7 +376,7 @@ class ContratResource extends Resource
 
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
 
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([
