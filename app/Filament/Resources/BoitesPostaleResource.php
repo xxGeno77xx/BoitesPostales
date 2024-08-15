@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Carbon\Carbon;
 use App\Models\Etat;
 use Filament\Tables;
+use App\Models\Contrat;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use App\Models\BureauPoste;
@@ -25,6 +26,7 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use App\Forms\Components\IdentityViewer;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Illuminate\Database\Eloquent\Builder;
@@ -32,6 +34,7 @@ use Filament\Forms\Components\Placeholder;
 use App\Filament\Resources\BoitesPostaleResource\Pages;
 use App\Filament\Resources\BoitesPostaleResource\RelationManagers\AbonneRelationManager;
 use App\Filament\Resources\BoitesPostaleResource\RelationManagers\ContratRelationManager;
+
 
 class BoitesPostaleResource extends Resource
 {
@@ -66,9 +69,7 @@ class BoitesPostaleResource extends Resource
 
                         Grid::make(3)
                             ->schema([
-                                TextInput::make('ref_contrat')
-                                    ->label('Référence du contrat')
-                                    ->placeholder('-'),
+
 
                                 TextInput::make('nom_abonne')
                                     ->label('Nom abonné')
@@ -188,12 +189,12 @@ class BoitesPostaleResource extends Resource
                                 TextInput::make('libelle_piece')
                                     ->label('libelle_piece')
                                     ->placeholder('-'),
-                                    
+
                                 TextInput::make('infos_compl')
                                     ->label('infos_compl')
                                     ->placeholder('-'),
 
-                                    TextInput::make('id_operation')
+                                TextInput::make('id_operation')
                                     ->label('id_operation')
                                     ->placeholder('-'),
 
@@ -221,13 +222,7 @@ class BoitesPostaleResource extends Resource
                                 TextInput::make('designation_bp')
                                     ->label('Désignation boîte'),
 
-                                DatePicker::make('date_debut_contrat')
-                                    ->label('Début du contrat')
-                                    ->format('d/m/Y'),
 
-                                DatePicker::make('date_fin_contrat')
-                                    ->label('Fin du contrat')
-                                    ->format('d/m/Y'),
                             ]),
                     ]),
             ]);
@@ -238,9 +233,6 @@ class BoitesPostaleResource extends Resource
         return $table
             ->columns([
 
-                TextColumn::make('ref_contrat')
-                ->label('Référence du contrat')
-                ->placeholder('-'),
 
                 TextColumn::make("id_bp")
                     ->label("ID de la boîte")
@@ -293,17 +285,6 @@ class BoitesPostaleResource extends Resource
                 TextColumn::make('montant_reglement')
                     ->label('Montant'),
 
-                TextColumn::make('date_debut_contrat')
-                    ->label('Début du contrat')
-                    ->badge()
-                    ->color(Color::Green)
-                    ->date('d/m/y'),
-
-                TextColumn::make('date_fin_contrat')
-                    ->label('Fin du contrat')
-                    ->badge()
-                    ->color(Color::Red)
-                    ->date('d/m/y'),
 
                 TextColumn::make('code_bureau')
                     ->label('Bureau de poste')
@@ -371,46 +352,68 @@ class BoitesPostaleResource extends Resource
 
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
 
+                Action::make("enregistrer")
+                    ->action(function ($record) {
+
+                        $sequence = DB::getSequence();
+
+                        $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
+
+                        try {
+
+                            Contrat::firstOrCreate([
+
+                                "ref_contrat" => $record->code_bureau . str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT) . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
+                                "code_etat_contrat" => 3,
+                                "contrat_source" => null,
+                                "date_debut_contrat" => $record->date_reglement,
+                                "date_derniere_facture" => $record->date_reglement,
+                                "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($record->validite_annee),
+                                "date_resiliation" => null,
+                                "date_resiliation_off" => null,
+                                "id_abonne" => $record->id_abonne,
+                                "id_bp" => $record->id_bp,
+                                "id_operation" => $record->id_operation,
+                                "id_service" => 1,
+                                "periodicite_facturation" => $record->periodicite_facturation,
+                                "utilisateur" => strtoupper(auth()->user()->name),
+
+                            ]);
+                        } catch (\Exception $e) {
+
+                        }
+
+
+                        Notification::make("created")
+                            ->title("Enregistré(e)")
+                            ->body("La demande a été enregisttrée")
+                            ->color("Color::Green")
+                            ->send();
+                    }),
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([
-                        Action::make('valider')
-                            ->icon('heroicon-o-check-circle')
-                            ->requiresConfirmation()
-                            ->color(Color::Green)
-                            ->action(function ($record) {
+                            Action::make('valider')
+                                ->icon('heroicon-o-check-circle')
+                                ->requiresConfirmation()
+                                ->color(Color::Green)
+                                ->action(function ($record) {
 
-                                Functions::sendValidation($record);
+                                    Functions::sendValidation($record);
 
-                            }),
+                                }),
 
-                        Action::make('rejeter')
-                            ->requiresConfirmation()
-                            ->icon('heroicon-o-x-circle')
-                            ->color(Color::Red)
-                            ->action(function ($record) {
+                            Action::make('rejeter')
+                                ->requiresConfirmation()
+                                ->icon('heroicon-o-x-circle')
+                                ->color(Color::Red)
+                                ->action(function ($record) {
 
-                                Functions::sendRejection($record);
+                                    Functions::sendRejection($record);
 
-                            }),
-
-                        Action::make('Télécharger')
-                            ->label("contrat")
-                            ->icon('heroicon-o-arrow-down-tray')
-                            ->color('success')
-                            // ->url(fn( array $record) => route('contrat.pdf.ddl', $record))
-                            ->action(function (Model $record) {
-
-                                return response()->streamDownload(function () use ($record) {
-                                    echo Pdf::loadHtml(
-                                        Blade::render('contrat', ['record' => $record])
-                                    )->stream();
-                                }, 'd.pdf');
-                            })
-
-
-                    ]),
+                                }),
+                        ]),
 
                 Action::make('valider')
                     ->requiresConfirmation()

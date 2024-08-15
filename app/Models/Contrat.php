@@ -14,6 +14,8 @@ class Contrat extends Model
 
     protected $primaryKey = 'ref_contrat';
 
+    public $timestamps = false;
+
     // public function boitePostale(): HasOne
     // {
     //     return $this->hasOne(BoitesPostale::class, "id_bp", "id_bp");

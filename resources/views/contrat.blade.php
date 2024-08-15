@@ -1,6 +1,6 @@
 @php
     use App\Models\BureauPoste;
-    $bureau = BureauPoste::find($record->code_bureau) ;
+    $bureau = BureauPoste::find($record->code_bureau);
 @endphp
 
 <!DOCTYPE html>
@@ -18,9 +18,11 @@
         }
 
         body {
-            margin: 2cm 1cm 0 1cm;
+            margin: 1cm 1cm 0 1cm;
             /* Marge en haut, droite, bas, gauche */
         }
+
+
 
         p {
             color: black;
@@ -66,27 +68,14 @@
             font-family: "Courier New", monospace;
             font-size: 8pt;
         }
-
-        .container {
-            position: relative; /* Nécessaire pour positionner les éléments internes */
-            width: 100%;
-            height: 300px; /* Hauteur de la grande div, ajustez selon vos besoins */
-            background-image: url('logo_poste.png'); /* URL de l'image */
-            background-position: top left; /* Positionne l'image en haut à gauche */
-            background-size: cover; /* Couvre tout le conteneur tout en conservant le ratio de l'image */
-            background-repeat: no-repeat; /* Évite la répétition de l'image */
-            color: white; /* Assure que le texte est lisible sur l'image */
-            padding: 20px; /* Espace autour du texte */
+        .top-left-image {
+            position: fixed;
+            top: 15;
+            left: 29;
+            width: 100px; /* Ajustez la largeur selon vos besoins */
+            height: auto;
+            z-index: 1000; /* S'assure que l'image reste au-dessus des autres éléments */
         }
-        .content-container {
-            position: absolute; /* Permet de placer le texte par-dessus l'image */
-            top: 20px; /* Espacement du haut */
-            left: 20px; /* Espacement du gauche */
-        }
-        .content-container p, .content-container h1 {
-            margin: 0; /* Supprime les marges par défaut */
-        }
-        
     </style>
 
 
@@ -94,14 +83,22 @@
 
 <body>
 
+    <div class="container">
+        <!-- Conteneur pour l'image -->
+        <div class="image-container">
+            <img src="logo_poste.png" alt="Top Left Image" class="top-left-image">
+        </div>
 
-    <p style="text-indent: 0pt; text-align: left"><br /></p>
+        <!-- Conteneur pour le texte -->
+        <div class="text-container">
+            <p style="text-indent: 0pt; text-align: left"><br /></p>
+            <p class="s1">LA POSTE</p>
+            <p class="s2">SOCIETE DES POSTES DU TOGO</p>
+            <h1 class="s2">CONTRAT D'ABONNEMENT A LA BOITE POSTALE</h1>
+        </div>
+    </div>
 
-    <p class="s1">LA POSTE</p>
 
-    <p class="s2">SOCIETE DES POSTES DU TOGO</p>
-
-    <h1 class="s2">CONTRAT D'ABONNEMENT A LA BOITE POSTALE</h1>
 
 
     <br>
@@ -111,12 +108,12 @@
     </p>
 
     <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
-        Référence contrat : {{ $record->ref_contrat }} 
+        Référence contrat : {{ $record->ref_contrat }}
     </p>
 
     <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
-      Entre les soussignés
-  </p>
+        Entre les soussignés
+    </p>
 
     <br>
     <br>
@@ -134,25 +131,25 @@
     </p>
 
     <p style="padding-left: 5pt; text-indent: 0pt; text-align: left">
-        Raison sociale :
+        Raison sociale : {{ $record->raison_sociale }}
     </p>
 
     <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
-        Premier responsable : {{ $record->premier_resp }} 
+        Premier responsable : {{ $record->premier_resp }}
     </p>
 
     <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
-      Nationalité : {{ $record->nationalite }} 
-  </p>
+        Nationalité : {{ $record->nationalite }}
+    </p>
 
-  <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
-    Téléphone fixe : {{ $record->tel_fixe }}  
-</p>
+    <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
+        Téléphone fixe : {{ $record->tel_fixe }}
+    </p>
 
 
-<p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
-    Téléphone mobile : {{ $record->telephone }}
-</p>
+    <p style="padding-left: 5pt; text-indent: 0pt; line-height: 124%;">
+        Téléphone mobile : {{ $record->telephone }}
+    </p>
 
     <p style="padding-left: 5pt; text-indent: 0pt; text-align: left">
         <a href="mailto:{{ $record->email }}" class="a" target="_blank">Email : {{ $record->email }}</a>
@@ -165,7 +162,7 @@
     </p>
 
     <br>
-    
+
     <p class="s3">ARTICLE 1: <u>OBJET</u></p>
     <p style="padding-left: 5pt; text-indent: 0pt; text-align: left">
         Le présent contrat a pour objet de définir les conditions d'admission et d'abonnement au service boîte postale.
@@ -204,7 +201,8 @@
     </p>
 
     <p style="padding-top: 2pt; padding-left: 5pt; text-indent: 0pt; line-height: 124%; text-align: left;">
-        Il est concédé à l'abonné une boîte postale identifiée, <b>{{$bureau?->code_postal_buro}} BP {{$record->designation_bp}}</b>, localisée au bureau de poste de
+        Il est concédé à l'abonné une boîte postale identifiée, <b>{{ $bureau?->code_postal_buro }} BP
+            {{ $record->designation_bp }}</b>, localisée au bureau de poste de
         LOME APEDOKOE.
     </p>
 
