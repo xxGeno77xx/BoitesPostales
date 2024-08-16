@@ -3,6 +3,7 @@
 namespace App\Functions;
 
 use Carbon\Carbon;
+use App\Models\Contrat;
 use App\Models\BureauPoste;
 use Illuminate\Support\Str;
 use Filament\Support\Colors\Color;
@@ -14,7 +15,7 @@ class Functions
 {
     const ACTIVATED = 2;
 
-    const REJECTED = 7;
+    const REJECTED = 1;
 
 
      /** 
@@ -23,16 +24,24 @@ class Functions
 
     public static function setValidationParameters($record)
     {
-        // $record->update([
-        //     "code_etat_bp" => self::ACTIVATED //atribuée
-        // ]);
+        
+        $contrat = Contrat::find($record->ref_contrat);
+
+      
+        $record->update([
+            "code_etat_bp" => self::ACTIVATED, //atribuée
+        ]);
+
+        $contrat->update([
+             "code_etat_contrat" => 0 // encours
+        ]);
 
         
         $refSms = Str::random(10);
 
         $bureau = BureauPoste::find($record->code_bureau);
 
-        $telephone = 22891568182;  //record->telephone
+        $telephone = 22890110599;    // TODO:  $record->telephone;
 
         $message = 'NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE '.$bureau->code_postal_buro.' BP '.$record->designation_bp.' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE '.$bureau->designation_buro .' POUR SIGNER VOTRE CONTRAT.';
 
@@ -69,15 +78,22 @@ class Functions
 
     public static function setRejectionParameters($record)
     {
-       
 
-        // $record->update([
-        //     "code_etat_bp" => self::REJECTED //atribuée
-        // ]);
+   
+
+        $contrat = Contrat::find($record->ref_contrat);
+
+        $record->update([
+              "code_etat_bp" => self::REJECTED, //atribuée
+        ]);
+
+         $contrat->update([
+             "code_etat_contrat" => 2 // bloqué
+        ]);
 
         $refSms = Str::random(10);
 
-        $telephone = 22891568182;  //$record->telephone;
+        $telephone = 22890110599;  //        // TODO:  $record->telephone;
 
         $message = 'NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE A ETE REJETEE.';
 

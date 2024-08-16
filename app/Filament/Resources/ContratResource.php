@@ -7,6 +7,7 @@ use Filament\Forms;
 use Filament\Tables;
 use App\Models\Contrat;
 use Filament\Forms\Form;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Table;
 use App\Functions\Functions;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -240,19 +241,41 @@ class ContratResource extends Resource
                 ->label('Référence du contrat')
                 ->placeholder('-'),
 
-                TextColumn::make("id_bp")
-                    ->label("ID de la boîte")
-                    ->placeholder("-")
-                    ->searchable(query: function (Builder $query, string $search): Builder {
+                // TextColumn::make("id_bp")
+                //     ->label("ID de la boîte")
+                //     ->placeholder("-")
+                //     ->searchable(query: function (Builder $query, string $search): Builder {
 
-                        return $query->selectRaw('boite.boite_postale.id_bp')
-                            ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
+                //         return $query->selectRaw('boite.boite_postale.id_bp')
+                //             ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
 
+                //     }),
+
+                // TextColumn::make('id_reglement')
+                //     ->label('ID règlement')
+                //     ->placeholder('-'),
+
+                BadgeColumn::make("libelle_etat_contrat")
+                    ->label("Statut du contrat")
+                    ->color(function($state){
+                        $return = null;
+                        switch($state){
+                            case "CONTRAT EN COURS" : $return = Color::Green;
+                            break;
+
+                            case "CONTRAT RESILIE" : $return = Color::Orange;
+                            break;
+
+                            case "CONTRAT BLOQUE" : $return = Color::Red;
+                            break;
+
+                            case "CONTRAT INITIE" : $return = Color::Blue;
+                            break;
+                        }
+
+                        return $return;
                     }),
-
-                TextColumn::make('id_reglement')
-                    ->label('ID règlement')
-                    ->placeholder('-'),
+                   
 
                 TextColumn::make('nom_abonne')
                     ->label('Nom abonné')
@@ -288,20 +311,20 @@ class ContratResource extends Resource
                     ->date('d/m/y')
                     ->placeholder('-'),
 
-                TextColumn::make('montant_reglement')
-                    ->label('Montant'),
+                // TextColumn::make('montant_reglement')
+                //     ->label('Montant'),
 
                 TextColumn::make('date_debut_contrat')
                     ->label('Début du contrat')
                     ->badge()
                     ->color(Color::Green)
-                    ->date('d/m/y'),
+                    ->date('d/m/Y'),
 
                 TextColumn::make('date_fin_contrat')
                     ->label('Fin du contrat')
                     ->badge()
                     ->color(Color::Red)
-                    ->date('d/m/y'),
+                    ->date('d/m/Y'),
 
                 TextColumn::make('code_bureau')
                     ->label('Bureau de poste')
@@ -322,11 +345,11 @@ class ContratResource extends Resource
                     ->color(Color::Blue)
                     ->placeholder('-'),
 
-                    TextColumn::make('id_operation')
-                    ->label('operation')
-                    ->badge()
-                    ->color(Color::Blue)
-                    ->placeholder('-'),
+                    // TextColumn::make('id_operation')
+                    // ->label('operation')
+                    // ->badge()
+                    // ->color(Color::Blue)
+                    // ->placeholder('-'),
 
 
                 // IdentityColumn::make("piece")
@@ -417,27 +440,27 @@ class ContratResource extends Resource
 
                     ]),
 
-                Action::make('valider')
-                    ->requiresConfirmation()
-                    ->color(Color::Green)
-                    ->icon('heroicon-o-check-circle')
-                    // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." ?"))
-                    ->action(function ($record) {
+                // Action::make('valider')
+                //     ->requiresConfirmation()
+                //     ->color(Color::Green)
+                //     ->icon('heroicon-o-check-circle')
+                //     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." ?"))
+                //     ->action(function ($record) {
 
-                        Functions::sendValidation($record);
+                //         Functions::sendValidation($record);
 
-                    }),
+                //     }),
 
-                Action::make('rejeter')
-                    ->requiresConfirmation()
-                    ->color(Color::Red)
-                    // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." pour la bôite postale numéro". $record->designation_bp." ?"))
-                    ->icon('heroicon-o-x-circle')
-                    ->action(function ($record) {
+                // Action::make('rejeter')
+                //     ->requiresConfirmation()
+                //     ->color(Color::Red)
+                //     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." pour la bôite postale numéro". $record->designation_bp." ?"))
+                //     ->icon('heroicon-o-x-circle')
+                //     ->action(function ($record) {
 
-                        Functions::sendRejection($record);
+                //         Functions::sendRejection($record);
 
-                    }),
+                //     }),
             ])
 
             ->bulkActions([

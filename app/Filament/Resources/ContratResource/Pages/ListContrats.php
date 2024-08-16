@@ -16,7 +16,7 @@ class ListContrats extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            // Actions\CreateAction::make(),
         ];
     }
 
@@ -32,6 +32,7 @@ class ListContrats extends ListRecords
         ->leftjoin("boite.type_piece", "boite.type_piece.code_type_piece", "boite.abonne.code_type_piece")
         ->leftjoin('boite.ville', 'boite.ville.code_ville','boite.abonne.code_ville')
         ->join("boite.contrat", "boite.contrat.id_operation", "reglement.id_operation")
+        ->join("boite.etat_contrat","boite.etat_contrat.code_etat_contrat", "boite.contrat.code_etat_contrat")
               
         ->selectRaw(
             
@@ -75,15 +76,26 @@ class ListContrats extends ListRecords
                 contrat.ref_contrat,
                 contrat.date_debut_contrat,
                 contrat.date_fin_contrat,
-                boite.abonne.nationalite
+                boite.abonne.nationalite,
+                boite.etat_contrat.libelle_etat_contrat,
+                boite.contrat.code_etat_contrat
                  
           
                 '
         )
-        ->whereRaw('boite.boite_postale.code_etat_bp = ?', [6])
-        ->orderby("boite.reglement.date_reglement", "desc")
-        ->whereNotNull("boite.abonne.document_name");;
-        
+         
+        // ->OrwhereRaw(' boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [3, 6]) 
+        // ->OrwhereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [0, 2]) 
+        // ->OrwhereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [2, 1]) 
+
+        ->where(function($query) {
+            $query->whereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [3, 6]) //  contrat initie et boite reservée
+                  ->orWhereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [0, 2]) // contrat validé et boite attribuée
+                  ->orWhereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [2, 1]); // contrat bloque et boite libre
+        })
+        ->whereNotNull("boite.abonne.document_name")
+        ->whereRaw("to_number(to_char(boite.contrat.date_debut_contrat,'yyyymmdd'))  >= 20240101")
+        ->orderby("boite.reglement.date_reglement", "desc");
 
     }
 }
