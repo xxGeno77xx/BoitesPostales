@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use Schema;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Contrat;
 use Filament\Forms\Form;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Table;
 use App\Functions\Functions;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,15 +17,19 @@ use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\Filter;
+use App\Procedures\StoredProcedures;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Blade;
 use Filament\Forms\Components\Fieldset;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use App\Forms\Components\IdentityViewer;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Placeholder;
 use App\Filament\Resources\ContratResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\ContratResource\RelationManagers;
@@ -423,10 +427,40 @@ class ContratResource extends Resource
 
                             }),
 
+                            Action::make('notifier')
+                            ->form([
+                                Placeholder::make("categ_pro")
+                                    ->label("Catégorie professionnelle")
+                                    ->content(fn($record) => $record->libelle_categ_prof),
+
+                                TextInput::make("tarif")
+                                    ->formatStateUsing(function($record){
+
+                                        $response = Http::post('192.168.60.43:8080/boitepostale-api/boitemanagement/tarifAbonnement', [
+                                            'codeCategProf' => 'Steve',
+                                            'codeBureau' => 'Network Administrator',
+                                            'duree' => 'Network Administrator',
+                                            'codeTypeOp' => 'Network Administrator',
+                                            
+                                        ]);
+                                    })
+                                    ->disabled()
+
+                            ])
+                            ->requiresConfirmation()
+                            ->icon('heroicon-o-envelope')
+                            ->color(Color::Yellow)
+                            ->action(function ($record) {
+
+                            //    $result = StoredProcedures::getTarifs(4,1,1,1, '01/01/24',  '01/01/26', 924,2,1,1);
+
+                            }),
+
                         Action::make('Télécharger')
                             ->label("contrat")
                             ->icon('heroicon-o-arrow-down-tray')
                             ->color('success')
+                            ->visible(fn($record) => $record->code_etat_contrat == 0? true: false) //  0 => en cours || 1 => resilié || 2 => bloque
                             // ->url(fn( array $record) => route('contrat.pdf.ddl', $record))
                             ->action(function (Model $record) {
 
@@ -482,7 +516,7 @@ class ContratResource extends Resource
         return [
             'index' => Pages\ListContrats::route('/'),
             'create' => Pages\CreateContrat::route('/create'),
-            'edit' => Pages\EditContrat::route('/{record}/edit'),
+            // 'edit' => Pages\EditContrat::route('/{record}/edit'),
         ];
     }
 }

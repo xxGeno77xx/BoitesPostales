@@ -2,18 +2,22 @@
 
 namespace App\Filament\Resources;
 
-use App\Forms\Components\CfeField;
 use Carbon\Carbon;
 use App\Models\Etat;
 use Filament\Tables;
+use App\Models\Ville;
+use App\Models\Abonne;
 use App\Models\Contrat;
 use Filament\Forms\Form;
+use App\Models\TypePiece;
 use Filament\Tables\Table;
 use App\Models\BureauPoste;
 use App\Functions\Functions;
+use App\Models\CategoriePro;
 use App\Models\BoitesPostale;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Resources\Resource;
+use App\Forms\Components\CfeField;
 use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\Grid;
@@ -22,6 +26,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\Blade;
 use App\Tables\Columns\IdentityColumn;
+use Illuminate\Support\Facades\Schema;
 use Filament\Forms\Components\Fieldset;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
@@ -53,24 +58,26 @@ class BoitesPostaleResource extends Resource
                     ->schema([
 
                         IdentityViewer::make("Identité")
-                            ->label("Pièce d'identité"),
+                            ->label("Pièce d'identité")
+                            ->hiddenOn("edit"),
 
                         CfeField::make("cfe")
-                        ->label("Carte CFE"),
+                        ->label("Carte CFE")
+                        ->hiddenOn("edit"),
 
-                        FileUpload::make("document_name")
-                            ->label("")
-                            ->preserveFilenames()
-                            ->imageEditor(true)
-                            ->columnSpanFull()
-                            ->hiddenOn("view")
+                        // FileUpload::make("document_name")
+                        //     ->label("")
+                        //     ->preserveFilenames()
+                        //     ->imageEditor(true)
+                        //     ->columnSpanFull()
+                        //     ->hiddenOn("edit")
 
                     ])
                 ,
 
                 Fieldset::make("Informations de l'abonné")
 
-                    ->hiddenOn("edit")
+                    
                     ->schema([
 
                         Grid::make(3)
@@ -85,12 +92,9 @@ class BoitesPostaleResource extends Resource
                                     ->label('Prénom abonné')
                                     ->placeholder('-'),
 
-                                TextInput::make('raison_sociale')
-                                    ->label('Raison sociale')
-                                    ->placeholder('-'),
 
                                 TextInput::make('id_bp')
-                                    ->label('id_bp')
+                                    ->label('ID de la boîte postale')
                                     ->placeholder('-'),
 
                                 TextInput::make('telephone')
@@ -102,26 +106,26 @@ class BoitesPostaleResource extends Resource
                                     ->placeholder('-'),
 
                                 TextInput::make('montant_reglement')
-                                    ->label('montant_reglement')
+                                    ->label('Montant du règlement')
                                     ->placeholder('-'),
 
 
                                 TextInput::make('tel_fixe')
-                                    ->label('tel_fixe')
+                                    ->label('Téléphone fixe')
                                     ->placeholder('-'),
 
                                 TextInput::make('num_piece')
-                                    ->label('num_piece')
+                                    ->label('Numéro de la pièce')
                                     ->placeholder('-'),
 
 
                                 TextInput::make('titre')
-                                    ->label('titre')
+                                    ->label('Titre')
                                     ->placeholder('-'),
 
                                 DatePicker::make('date_deliv_piece')
-                                    ->label('date_deliv_piece')
-                                    ->format('d/m/Y')
+                                    ->label('Date de délivrance de la pièce')
+                                    ->displayFormat('d/m/Y')
                                     ->placeholder('-'),
 
                                 TextInput::make('autorite_deliv_piece')
@@ -129,60 +133,63 @@ class BoitesPostaleResource extends Resource
                                     ->placeholder('-'),
 
                                 TextInput::make('tel_mobile')
-                                    ->label('tel_mobile')
+                                    ->label('Téléphone')
                                     ->placeholder('-'),
 
 
                                 TextInput::make('email')
-                                    ->label('email')
+                                    ->label('Email')
                                     ->placeholder('-'),
 
 
                                 TextInput::make('nom_maison')
-                                    ->label('nom_maison')
+                                    ->label('Maison')
                                     ->placeholder('-'),
 
-                                TextInput::make('raison_sociale')
+                                TextInput::make('raison_sociale') //ici
                                     ->label('Raison sociale')
                                     ->placeholder('-'),
 
 
                                 TextInput::make('num_maison')
-                                    ->label('num_maison')
+                                    ->label('Maison N°')
                                     ->placeholder('-'),
 
                                 TextInput::make('nom_rue')
-                                    ->label('nom_rue')
+                                    ->label('Rue')
                                     ->placeholder('-'),
 
                                 TextInput::make('num_rue')
-                                    ->label('num_rue')
+                                    ->label('Rue N°')
                                     ->placeholder('-'),
 
                                 TextInput::make('quartier')
-                                    ->label('quartier')
+                                    ->label('Quartier')
                                     ->placeholder('-'),
 
                                 TextInput::make('premier_resp')
-                                    ->label('premier_resp')
+                                    ->label('Premier responsable')
                                     ->placeholder('-'),
 
                                 DatePicker::make('datenais')
-                                    ->label('datenais')
-                                    ->format('d/m/Y')
+                                    ->label('Date de naissance')
+                                    ->displayFormat('d/m/Y')
                                     ->placeholder('-'),
 
                                 TextInput::make('num_cpte')
-                                    ->label('num_cpte')
-                                    ->placeholder('-'),
+                                    ->label('Numéro de compte')
+                                    ->placeholder('-')
+                                    ->numeric(),
 
-                                TextInput::make('libelle_categ_prof')
-                                    ->label('libelle_categ_prof')
-                                    ->placeholder('-'),
+                                Select::make('code_categ_prof')
+                                    ->label('Catégorie professionnelle')
+                                    ->searchable()
+                                    ->options(CategoriePro::pluck("libelle_categ_prof","code_categ_prof")),
 
-                                TextInput::make('libelle_ville')
+                                Select::make('code_ville')
                                     ->label('Ville')
-                                    ->placeholder('-'),
+                                    ->options(Ville::pluck("libelle_ville", "code_ville"))
+                                    ->searchable(),
 
                                 TextInput::make('banque')
                                     ->label('banque')
@@ -192,9 +199,10 @@ class BoitesPostaleResource extends Resource
                                     ->label('email2')
                                     ->placeholder('-'),
 
-                                TextInput::make('libelle_piece')
-                                    ->label('libelle_piece')
-                                    ->placeholder('-'),
+                                Select::make('code_type_piece')
+                                    ->label('Pièce d\'identité')
+                                    ->options(TypePiece::pluck("libelle_piece", "code_type_piece"))
+                                    ->searchable(),
 
                                 TextInput::make('infos_compl')
                                     ->label('infos_compl')
@@ -202,6 +210,10 @@ class BoitesPostaleResource extends Resource
 
                                 TextInput::make('id_operation')
                                     ->label('id_operation')
+                                    ->placeholder('-'),
+
+                                    TextInput::make('nationalite')
+                                    ->label('Nationalité')
                                     ->placeholder('-'),
 
                             ]),
@@ -223,7 +235,8 @@ class BoitesPostaleResource extends Resource
                                     ->format('d/m/Y'),
 
                                 TextInput::make('code_bureau')
-                                    ->label('Bureau de poste'),
+                                    ->label('Bureau de poste')
+                                    ->placeholder('-'),
 
                                 TextInput::make('designation_bp')
                                     ->label('Désignation boîte'),
@@ -290,6 +303,8 @@ class BoitesPostaleResource extends Resource
 
                 TextColumn::make('montant_reglement')
                     ->label('Montant'),
+
+                    
 
 
                 TextColumn::make('code_bureau')
@@ -358,7 +373,48 @@ class BoitesPostaleResource extends Resource
 
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                ->using(function (Model $record, array $data): Model {
+
+                    $abonne = Abonne::find($record->id_abonne);
+
+                    $abonne->update([
+                        "nom" => $data["nom_abonne"],
+                        "prenoms" => $data["prenom_abonne"],
+                        "raison_sociale" => $data["raison_sociale"],
+                        "nationalite" => $data["nationalite"],
+                        "tel_fixe" => $data["tel_fixe"],
+                        "num_piece" => $data["num_piece"],
+                        "infos_compl" => $data["infos_compl"],
+                        "titre" => $data["titre"],
+                        "date_deliv_piece" => $data["date_deliv_piece"],
+                        "autorite_deliv_piece" => $data["autorite_deliv_piece"],
+                        "tel_mobile" => $data["tel_mobile"],
+                        "email" => $data["email"],
+                        "nom_maison" => $data["nom_maison"],
+                        "num_maison" => $data["num_maison"],
+                        "nom_rue" => $data["nom_rue"],
+                        "num_rue" => $data["num_rue"],
+                        "quartier" => $data["quartier"],
+                        "premier_resp" => $data["premier_resp"],
+                        "datenais" => $data["datenais"],
+                        "num_cpte" => $data["num_cpte"],
+
+                        ////////////////////////////////////////////
+                        "code_categ_prof" => $data["code_categ_prof"],
+
+                        /////////////////////////
+
+                        "code_type_piece" => $data["code_type_piece"],
+                        "code_ville" => $data["code_ville"],
+                        "banque" => $data["banque"],
+                        "email2" => $data["email2"],
+
+
+                    ]);
+
+                    return $record;
+                }),
 
                 Action::make("enregistrer")
                     ->action(function ($record) {

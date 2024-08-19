@@ -126,7 +126,7 @@ class Functions
     public static function sendValidation($record)
     {
        
-        $data = Functions::setValidationParameters($record);
+        $data = Functions::setValidationParameters($record); 
 
         Notification::make('valide')
             ->body('Boîte postale attribuée')

@@ -46,4 +46,67 @@ class StoredProcedures
 
         return [$code, $info];
     }
+
+
+    public static function getTarifs($codesousgpe, $idservice, $idregroup, $idparam_facturation, $dates,  $au, $code_bureau,  $duree,  $code_type_op,  $soumis_tva ): array
+    {
+
+        try {
+
+            $pdo = DB::getPdo();
+
+            $procedure = $pdo->prepare('begin procedures.tarif_abonnement_boite(
+                :codesousgpe,
+                :idservice,
+                :idregroup,
+                :idparam_facturation,
+                :dates,
+                :au,
+                :code_bureau,
+                :duree,
+                :code_type_op,
+                :soumis_tva,
+                :redevance_bp,
+                :penalite,
+                :taxe_fixe,
+                :tva,
+                :redevance,
+                :an_bonus); end;');
+
+            $code = str_repeat(' ', 10);  // Pré-allocation de l'espace pour les variables OUT
+            $info = str_repeat(' ', 100);
+
+            $procedure->bindParam(':codesousgpe', $codesousgpe, PDO::PARAM_STR);
+            $procedure->bindParam(':idservice', $idservice, PDO::PARAM_STR);
+            $procedure->bindParam(':idregroup', $idregroup, PDO::PARAM_STR);
+            $procedure->bindParam(':idparam_facturation', $idparam_facturation, PDO::PARAM_STR);
+            $procedure->bindParam(':dates', $dates, PDO::PARAM_STR);
+            $procedure->bindParam(':au', $au, PDO::PARAM_STR);
+            $procedure->bindParam(':code_bureau', $code_bureau, PDO::PARAM_STR);
+            $procedure->bindParam(':duree', $duree, PDO::PARAM_STR);
+            $procedure->bindParam(':code_type_op', $code_type_op, PDO::PARAM_STR);
+            $procedure->bindParam(':soumis_tva', $soumis_tva, PDO::PARAM_STR);
+            $procedure->bindParam(':redevance_bp', $redevance_bp, PDO::PARAM_STR);
+            $procedure->bindParam(':penalite', $penalite, PDO::PARAM_STR);
+            $procedure->bindParam(':taxe_fixe', $taxe_fixe, PDO::PARAM_STR);
+            $procedure->bindParam(':tva', $tva, PDO::PARAM_STR);
+            $procedure->bindParam(':redevance', $redevance, PDO::PARAM_STR);
+            $procedure->bindParam(':an_bonus', $an_bonus, PDO::PARAM_STR);
+
+
+
+            $procedure->execute();
+
+        } catch (\Exception $e) {
+
+            Notification::make('error')
+                ->color(Color::Red)
+                ->body("Erreur lors du calcul de la tarification")
+                ->send();
+        }
+
+      
+
+        return [$redevance_bp, $penalite, $taxe_fixe, $tva, $redevance, $an_bonus];
+    }
 }

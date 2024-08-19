@@ -5,13 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Abonne extends Model
+class Ville extends Model
 {
     use HasFactory;
 
-    protected $table = 'boite.abonne';
+    protected $table = 'boite.ville';
 
-    protected $primaryKey = 'id_abonne';
+    protected $primaryKey = 'code_ville';
 
-    public $timestamps = false;
 }

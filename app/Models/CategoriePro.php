@@ -5,13 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Abonne extends Model
+class CategoriePro extends Model
 {
     use HasFactory;
 
-    protected $table = 'boite.abonne';
+    protected $table = 'boite.categorie_professionnelle';
 
-    protected $primaryKey = 'id_abonne';
+    protected $primaryKey = 'code_categ_prof';
 
-    public $timestamps = false;
 }
