@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use Carbon\Carbon;
 use App\Models\Etat;
+use Filament\Forms\Components\RichEditor;
 use Filament\Tables;
 use App\Models\Ville;
 use App\Models\Abonne;
@@ -58,12 +59,10 @@ class BoitesPostaleResource extends Resource
                     ->schema([
 
                         IdentityViewer::make("Identité")
-                            ->label("Pièce d'identité")
-                            ->hiddenOn("edit"),
+                            ->label("Pièce d'identité"),
 
                         CfeField::make("cfe")
-                        ->label("Carte CFE")
-                        ->hiddenOn("edit"),
+                        ->label("Carte CFE"),
 
                         // FileUpload::make("document_name")
                         //     ->label("")
@@ -93,26 +92,15 @@ class BoitesPostaleResource extends Resource
                                     ->placeholder('-'),
 
 
-                                TextInput::make('id_bp')
-                                    ->label('ID de la boîte postale')
-                                    ->placeholder('-'),
-
                                 TextInput::make('telephone')
                                     ->label('telephone')
-                                    ->placeholder('-'),
-
-                                TextInput::make('raison_sociale')
-                                    ->label('Raison sociale')
-                                    ->placeholder('-'),
-
-                                TextInput::make('montant_reglement')
-                                    ->label('Montant du règlement')
-                                    ->placeholder('-'),
-
+                                    ->placeholder('-')
+                                    ->numeric(),
 
                                 TextInput::make('tel_fixe')
                                     ->label('Téléphone fixe')
-                                    ->placeholder('-'),
+                                    ->placeholder('-')
+                                    ->numeric(),
 
                                 TextInput::make('num_piece')
                                     ->label('Numéro de la pièce')
@@ -129,16 +117,18 @@ class BoitesPostaleResource extends Resource
                                     ->placeholder('-'),
 
                                 TextInput::make('autorite_deliv_piece')
-                                    ->label('autorite_deliv_piece')
+                                    ->label('Autorité délivrant la pièce')
                                     ->placeholder('-'),
 
                                 TextInput::make('tel_mobile')
                                     ->label('Téléphone')
-                                    ->placeholder('-'),
+                                    ->placeholder('-')
+                                    ->numeric(),
 
 
                                 TextInput::make('email')
                                     ->label('Email')
+                                    ->email()
                                     ->placeholder('-'),
 
 
@@ -197,6 +187,7 @@ class BoitesPostaleResource extends Resource
 
                                 TextInput::make('email2')
                                     ->label('email2')
+                                    ->email()
                                     ->placeholder('-'),
 
                                 Select::make('code_type_piece')
@@ -204,17 +195,21 @@ class BoitesPostaleResource extends Resource
                                     ->options(TypePiece::pluck("libelle_piece", "code_type_piece"))
                                     ->searchable(),
 
-                                TextInput::make('infos_compl')
-                                    ->label('infos_compl')
-                                    ->placeholder('-'),
-
-                                TextInput::make('id_operation')
-                                    ->label('id_operation')
-                                    ->placeholder('-'),
-
                                     TextInput::make('nationalite')
                                     ->label('Nationalité')
                                     ->placeholder('-'),
+
+                                RichEditor::make('infos_compl')
+                                    ->label('Informations complémentaires')
+                                    ->placeholder('-')
+                                    ->columnSpanFull()
+                                    ->disableToolbarButtons([
+                                      
+                                    ]),
+
+                                
+
+                                    
 
                             ]),
 
@@ -226,20 +221,45 @@ class BoitesPostaleResource extends Resource
 
                         Grid::make(3)
                             ->schema([
+
+                                TextInput::make('id_operation')
+                                    ->label('id_operation')
+                                    ->placeholder('-'),
+
                                 TextInput::make('id_reglement')
                                     ->label('ID règlement')
-                                    ->placeholder('-'),
+                                    ->placeholder('-')
+                                    ->disabled()
+                                    ->dehydrated(false),
+
+                                    TextInput::make('montant_reglement')
+                                    ->label('Montant du règlement')
+                                    ->placeholder('-')
+                                    ->disabled()
+                                    ->dehydrated(false),
 
                                 DatePicker::make('date_reglement')
                                     ->label('Date du règlement')
-                                    ->format('d/m/Y'),
+                                    ->displayFormat('d/m/Y')
+                                    ->disabled()
+                                    ->dehydrated(false),
 
                                 TextInput::make('code_bureau')
                                     ->label('Bureau de poste')
-                                    ->placeholder('-'),
+                                    ->placeholder('-')
+                                    ->disabled()
+                                    ->dehydrated(false),
 
                                 TextInput::make('designation_bp')
-                                    ->label('Désignation boîte'),
+                                    ->label('Désignation boîte')
+                                    ->disabled()
+                                    ->dehydrated(false),
+                                
+                                TextInput::make('id_bp')
+                                    ->label('ID de la boîte postale')
+                                    ->placeholder('-')
+                                    ->disabled()
+                                    ->dehydrated(false),
 
 
                             ]),

@@ -6,10 +6,14 @@ use Schema;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\Ville;
+use App\Models\Abonne;
 use App\Models\Contrat;
 use Filament\Forms\Form;
+use App\Models\TypePiece;
 use Filament\Tables\Table;
 use App\Functions\Functions;
+use App\Models\CategoriePro;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Resources\Resource;
 use Filament\Support\Colors\Color;
@@ -19,6 +23,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\Filter;
 use App\Procedures\StoredProcedures;
 use Illuminate\Support\Facades\Http;
+use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\Blade;
 use Filament\Forms\Components\Fieldset;
 use Filament\Tables\Columns\TextColumn;
@@ -28,11 +33,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Placeholder;
 use App\Filament\Resources\ContratResource\Pages;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\ContratResource\RelationManagers;
+
 
 class ContratResource extends Resource
 {
@@ -57,21 +62,19 @@ class ContratResource extends Resource
                             ->preserveFilenames()
                             ->imageEditor(true)
                             ->columnSpanFull()
-                            ->hiddenOn("view")
+                            ->hidden()
 
                     ])
                 ,
 
                 Fieldset::make("Informations de l'abonné")
 
-                    ->hiddenOn("edit")
+                    
                     ->schema([
 
                         Grid::make(3)
                             ->schema([
-                                TextInput::make('ref_contrat')
-                                    ->label('Référence du contrat')
-                                    ->placeholder('-'),
+
 
                                 TextInput::make('nom_abonne')
                                     ->label('Nom abonné')
@@ -81,104 +84,95 @@ class ContratResource extends Resource
                                     ->label('Prénom abonné')
                                     ->placeholder('-'),
 
-                                TextInput::make('raison_sociale')
-                                    ->label('Raison sociale')
-                                    ->placeholder('-'),
-
-                                TextInput::make('id_bp')
-                                    ->label('id_bp')
-                                    ->placeholder('-'),
 
                                 TextInput::make('telephone')
                                     ->label('telephone')
-                                    ->placeholder('-'),
-
-                                TextInput::make('raison_sociale')
-                                    ->label('Raison sociale')
-                                    ->placeholder('-'),
-
-                                TextInput::make('montant_reglement')
-                                    ->label('montant_reglement')
-                                    ->placeholder('-'),
-
+                                    ->placeholder('-')
+                                    ->numeric(),
 
                                 TextInput::make('tel_fixe')
-                                    ->label('tel_fixe')
-                                    ->placeholder('-'),
+                                    ->label('Téléphone fixe')
+                                    ->placeholder('-')
+                                    ->numeric(),
 
                                 TextInput::make('num_piece')
-                                    ->label('num_piece')
+                                    ->label('Numéro de la pièce')
                                     ->placeholder('-'),
 
 
                                 TextInput::make('titre')
-                                    ->label('titre')
+                                    ->label('Titre')
                                     ->placeholder('-'),
 
                                 DatePicker::make('date_deliv_piece')
-                                    ->label('date_deliv_piece')
-                                    ->format('d/m/Y')
+                                    ->label('Date de délivrance de la pièce')
+                                    ->displayFormat('d/m/Y')
                                     ->placeholder('-'),
 
                                 TextInput::make('autorite_deliv_piece')
-                                    ->label('autorite_deliv_piece')
+                                    ->label('Autorité délivrant la pièce')
                                     ->placeholder('-'),
 
                                 TextInput::make('tel_mobile')
-                                    ->label('tel_mobile')
-                                    ->placeholder('-'),
+                                    ->label('Téléphone')
+                                    ->placeholder('-')
+                                    ->numeric(),
 
 
                                 TextInput::make('email')
-                                    ->label('email')
+                                    ->label('Email')
+                                    ->email()
                                     ->placeholder('-'),
 
 
                                 TextInput::make('nom_maison')
-                                    ->label('nom_maison')
+                                    ->label('Maison')
                                     ->placeholder('-'),
 
-                                TextInput::make('raison_sociale')
+                                TextInput::make('raison_sociale') //ici
                                     ->label('Raison sociale')
                                     ->placeholder('-'),
 
 
                                 TextInput::make('num_maison')
-                                    ->label('num_maison')
+                                    ->label('Maison N°')
                                     ->placeholder('-'),
 
                                 TextInput::make('nom_rue')
-                                    ->label('nom_rue')
+                                    ->label('Rue')
                                     ->placeholder('-'),
 
                                 TextInput::make('num_rue')
-                                    ->label('num_rue')
+                                    ->label('Rue N°')
                                     ->placeholder('-'),
 
                                 TextInput::make('quartier')
-                                    ->label('quartier')
+                                    ->label('Quartier')
                                     ->placeholder('-'),
 
                                 TextInput::make('premier_resp')
-                                    ->label('premier_resp')
+                                    ->label('Premier responsable')
                                     ->placeholder('-'),
 
                                 DatePicker::make('datenais')
-                                    ->label('datenais')
-                                    ->format('d/m/Y')
+                                    ->label('Date de naissance')
+                                    ->displayFormat('d/m/Y')
                                     ->placeholder('-'),
 
                                 TextInput::make('num_cpte')
-                                    ->label('num_cpte')
-                                    ->placeholder('-'),
+                                    ->label('Numéro de compte')
+                                    ->placeholder('-')
+                                    ->numeric(),
 
-                                TextInput::make('libelle_categ_prof')
-                                    ->label('libelle_categ_prof')
-                                    ->placeholder('-'),
+                                Select::make('code_categ_prof')
+                                    ->label('Catégorie professionnelle')
+                                    ->searchable()
+                                    ->options(CategoriePro::pluck("libelle_categ_prof","code_categ_prof")),
 
-                                TextInput::make('libelle_ville')
+                                Select::make('code_ville')
                                     ->label('Ville')
-                                    ->placeholder('-'),
+                                    ->options(Ville::pluck("libelle_ville", "code_ville"))
+                                    ->searchable(),
 
                                 TextInput::make('banque')
                                     ->label('banque')
@@ -186,26 +180,36 @@ class ContratResource extends Resource
 
                                 TextInput::make('email2')
                                     ->label('email2')
+                                    ->email()
                                     ->placeholder('-'),
 
-                                TextInput::make('libelle_piece')
-                                    ->label('libelle_piece')
+                                Select::make('code_type_piece')
+                                    ->label('Pièce d\'identité')
+                                    ->options(TypePiece::pluck("libelle_piece", "code_type_piece"))
+                                    ->searchable(),
+
+                                    TextInput::make('nationalite')
+                                    ->label('Nationalité')
                                     ->placeholder('-'),
+
+                                RichEditor::make('infos_compl')
+                                    ->label('Informations complémentaires')
+                                    ->placeholder('-')
+                                    ->columnSpanFull()
+                                    ->disableToolbarButtons([
+                                      
+                                    ]),
+
+                                
+
                                     
-                                TextInput::make('infos_compl')
-                                    ->label('infos_compl')
-                                    ->placeholder('-'),
-
-                                    TextInput::make('id_operation')
-                                    ->label('id_operation')
-                                    ->placeholder('-'),
 
                             ]),
 
                     ]),
 
                 Fieldset::make('Règlement')
-                    ->hiddenOn("edit")
+                    ->disabledOn("edit")
                     ->schema([
 
                         Grid::make(3)
@@ -403,7 +407,48 @@ class ContratResource extends Resource
 
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                ->using(function (Model $record, array $data): Model {
+
+                    $abonne = Abonne::find($record->id_abonne);
+
+                    $abonne->update([
+                        "nom" => $data["nom_abonne"],
+                        "prenoms" => $data["prenom_abonne"],
+                        "raison_sociale" => $data["raison_sociale"],
+                        "nationalite" => $data["nationalite"],
+                        "tel_fixe" => $data["tel_fixe"],
+                        "num_piece" => $data["num_piece"],
+                        "infos_compl" => $data["infos_compl"],
+                        "titre" => $data["titre"],
+                        "date_deliv_piece" => $data["date_deliv_piece"],
+                        "autorite_deliv_piece" => $data["autorite_deliv_piece"],
+                        "tel_mobile" => $data["tel_mobile"],
+                        "email" => $data["email"],
+                        "nom_maison" => $data["nom_maison"],
+                        "num_maison" => $data["num_maison"],
+                        "nom_rue" => $data["nom_rue"],
+                        "num_rue" => $data["num_rue"],
+                        "quartier" => $data["quartier"],
+                        "premier_resp" => $data["premier_resp"],
+                        "datenais" => $data["datenais"],
+                        "num_cpte" => $data["num_cpte"],
+
+                        ////////////////////////////////////////////
+                        "code_categ_prof" => $data["code_categ_prof"],
+
+                        /////////////////////////
+
+                        "code_type_piece" => $data["code_type_piece"],
+                        "code_ville" => $data["code_ville"],
+                        "banque" => $data["banque"],
+                        "email2" => $data["email2"],
+
+
+                    ]);
+
+                    return $record;
+                }),
 
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([

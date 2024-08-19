@@ -78,7 +78,8 @@ class ListContrats extends ListRecords
                 contrat.date_fin_contrat,
                 boite.abonne.nationalite,
                 boite.etat_contrat.libelle_etat_contrat,
-                boite.contrat.code_etat_contrat
+                boite.contrat.code_etat_contrat,
+                boite.abonne.id_abonne
                  
           
                 '
