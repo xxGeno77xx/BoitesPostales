@@ -76,7 +76,8 @@ class ListBoitesPostales extends ListRecords
                 boite.operation.id_operation,
                 boite.abonne.nationalite,
                 boite.operation.validite_annee,
-                boite.abonne.id_abonne
+                boite.abonne.id_abonne,
+                boite.abonne.cfe_document_name
                  
               
 

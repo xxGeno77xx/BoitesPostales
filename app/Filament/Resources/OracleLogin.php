@@ -111,7 +111,8 @@ class OracleLogin extends Login
         }
 
         $userToLogIn = User::where('username', $data['username'])->first();
-
+ 
+        
         if (! $userToLogIn) {
 
             $createUser = User::create([

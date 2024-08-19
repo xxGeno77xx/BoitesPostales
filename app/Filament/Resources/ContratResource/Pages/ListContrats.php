@@ -83,10 +83,6 @@ class ListContrats extends ListRecords
           
                 '
         )
-         
-        // ->OrwhereRaw(' boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [3, 6]) 
-        // ->OrwhereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [0, 2]) 
-        // ->OrwhereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [2, 1]) 
 
         ->where(function($query) {
             $query->whereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [3, 6]) //  contrat initie et boite reservée

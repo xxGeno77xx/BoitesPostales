@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Forms\Components\CfeField;
 use Carbon\Carbon;
 use App\Models\Etat;
 use Filament\Tables;
@@ -51,7 +52,11 @@ class BoitesPostaleResource extends Resource
                     ->columnSpanFull()
                     ->schema([
 
-                        IdentityViewer::make(""),
+                        IdentityViewer::make("Identité")
+                            ->label("Pièce d'identité"),
+
+                        CfeField::make("cfe")
+                        ->label("Carte CFE"),
 
                         FileUpload::make("document_name")
                             ->label("")

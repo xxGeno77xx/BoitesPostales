@@ -43,7 +43,7 @@ class Functions
 
         $telephone = 22890110599;    // TODO:  $record->telephone;
 
-        $message = 'NOUS AVONS LE PLAISIR DE VOUS ANNONCER QUE LA BOITE POSTALE '.$bureau->code_postal_buro.' BP '.$record->designation_bp.' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE '.$bureau->designation_buro .' POUR SIGNER VOTRE CONTRAT.';
+        $message = 'NOUS AVONS LE PLAISIR DE VOUS INFORMER QUE LA BOITE POSTALE '.$bureau->code_postal_buro.' BP '.$record->designation_bp.' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE '.$bureau->designation_buro .' POUR SIGNER VOTRE CONTRAT.';
 
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
@@ -95,7 +95,7 @@ class Functions
 
         $telephone = 22890110599;  //        // TODO:  $record->telephone;
 
-        $message = 'NOUS AVONS LE REGRET DE VOUS ANNONCER QUE VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE A ETE REJETEE.';
+        $message = 'NOUS AVONS LE REGRET DE VOUS INFORMER QUE VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE A ETE REJETEE.';
 
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
