@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\BureauPoste;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Section;
 use Schema;
 use Carbon\Carbon;
@@ -41,7 +42,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Placeholder;
 use App\Filament\Resources\ContratResource\Pages;
 
-
 class ContratResource extends Resource
 {
     protected static ?string $model = Contrat::class;
@@ -63,17 +63,14 @@ class ContratResource extends Resource
                         CfeField::make("cfe")
                             ->label("Carte CFE"),
 
-                    ])
-                ,
+                    ]),
 
                 Fieldset::make("Informations de l'abonné")
-
 
                     ->schema([
 
                         Grid::make(3)
                             ->schema([
-
 
                                 TextInput::make('nom_abonne')
                                     ->label('Nom abonné')
@@ -116,7 +113,6 @@ class ContratResource extends Resource
                                     ->label('Téléphone')
                                     ->placeholder('-')
                                     ->numeric(),
-
 
                                 TextInput::make('email')
                                     ->label('Email')
@@ -195,11 +191,6 @@ class ContratResource extends Resource
                                     ->label('Informations complémentaires')
                                     ->placeholder('-')
                                     ->columnSpanFull(),
-
-
-
-
-
                             ]),
 
                     ]),
@@ -242,7 +233,7 @@ class ContratResource extends Resource
                     ]),
 
                 Section::make("Tarification")
-                ->hiddenOn("view")
+                    ->hiddenOn("view")
                     ->schema([
 
                         Grid::make(2)
@@ -252,76 +243,98 @@ class ContratResource extends Resource
                                     ->label('Catégorie professionnelle')
                                     ->searchable()
                                     ->dehydrated(false)
-                                    ->options(CategoriePro::pluck("libelle_categ_prof", "code_categ_prof")),
+                                    ->options(CategoriePro::pluck("libelle_categ_prof", "code_categ_prof"))
+                                    ->columnSpanFull(),
 
-                                TextInput::make('duree_abonnement')
-                                    ->label("Durée de l'abonnement")
-                                    ->suffix("années")
+
+                                Radio::make('zone')
+                                    ->label("Choix de la zone")
+                                    ->options([
+                                        1 => 'Lomé',
+                                        2 => 'Intérieur',
+
+                                    ])
+                                    ->dehydrated(false)
+                                    ->inline(),
+
+                                Radio::make('duree_abonnement')
+                                    ->label("Durée")
+                                    ->options([
+                                        2 => '2 ans',
+                                        5 => '5 ans',
+
+                                    ])
+                                    ->inline()
                                     ->live()
                                     ->dehydrated(false)
-                                    ->afterStateUpdated(function($set, $get, $record){
+                                    ->afterStateUpdated(function ($set, $get, $record) {
 
-                                        $codeSousGroupe = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", [$record->code_categ_prof])->first()->code_sous_gpe;
- 
-                                        $idService = 1; //static
+                                        $codeSousGroupe = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->code_sous_gpe;
 
-                                        $idRegroup = 2 ;
+                                        $idService = 1; // figé
+                            
+                                        $idRegroup = $get("zone");
 
-                                        $idParamFacturation = 1;
-
+                                        $idParamFacturation = 4;  //figé comme dans l'api
+                            
                                         $code_bureau = $record->code_bureau;
-                                         
+
                                         $dates = Carbon::parse($record->date_debut_contrat)->format("Y/m/d");
 
                                         $au = Carbon::parse($record->date_fin_contrat)->format("Y/m/d");
 
-                                        $duree =$get("duree_abonnement");
+                                        $duree = $get("duree_abonnement");
 
-                                        $codeTypeOperation = DB::table("boite.operation")->whereRaw("id_operation = ?", [$record->id_operation])->first()->code_type_op;
+                                        $codeTypeOperation = 1;// DB::table("boite.operation")->whereRaw("id_operation = ?", [$record->id_operation])->first()->code_type_op;
+                            
+                                        $soumisTva = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->soumis_tva;
 
-                                        $soumisTva = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", [$record->code_categ_prof])->first()->soumis_tva;
+                                        // $result = StoredProcedures::getTarifs($codeSousGroupe , $idService,$idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, $codeTypeOperation, $soumisTva);
+                            
+                                        $result = StoredProcedures::getTarifs($codeSousGroupe, $idService, $idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, 5, $soumisTva);
 
-                                        $result = StoredProcedures::getTarifs($codeSousGroupe , $idService,$idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, $codeTypeOperation, $soumisTva);
 
-                                    
-
-                                         $set("redevancebp",$result["redevance_bp"]);
-                                         $set("penalite",$result["penalite"]);
-                                         $set("taxe_fixe",$result["taxe_fixe"]);
-                                         $set("tva",$result["tva"]);
-                                         $set("redevance",$result["redevance"]);
-                                         $set("an_bonus",$result["an_bonus"]);
+                                        $set("redevancebp", $result["redevance_bp"]);
+                                        $set("penalite", $result["penalite"]);
+                                        $set("taxe_fixe", $result["taxe_fixe"]);
+                                        $set("tva", $result["tva"]);
+                                        $set("redevance", $result["redevance"]);
+                                        $set("an_bonus", $result["an_bonus"]);
                                     }),
                             ]),
 
-                       Grid::make(3)
-                       ->schema([
-                        TextInput::make("redevancebp")
-                        ->label("Montant à payer")
-                        ->dehydrated(false)
-                        ->disabled(),
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make("redevancebp")
+                                    ->label("Montant à payer")
+                                    ->dehydrated(false)
+                                    ->disabled(),
 
-                        TextInput::make("penalite")
-                        ->label("penalite")
-                        ->dehydrated(false)
-                        ->disabled(),
-                        TextInput::make("taxe_fixe")
-                        ->label("Taxe fixe")
-                        ->dehydrated(false)
-                        ->disabled(),
-                        TextInput::make("tva")
-                        ->label("TVA")
-                        ->dehydrated(false)
-                        ->disabled(),
-                        TextInput::make("redevance")
-                        ->label("redevance")
-                        ->dehydrated(false)
-                        ->disabled(),
-                        TextInput::make("an_bonus")
-                        ->label("Années bonus")
-                        ->dehydrated(false)
-                        ->disabled(),
-                       ])
+                                TextInput::make("penalite")
+                                    ->label("Pénalité")
+                                    ->dehydrated(false)
+                                    ->disabled(),
+
+                                TextInput::make("taxe_fixe")
+                                    ->label("Taxe fixe")
+                                    ->dehydrated(false)
+                                    ->disabled(),
+
+                                TextInput::make("tva")
+                                    ->label("TVA")
+                                    ->dehydrated(false)
+                                    ->disabled(),
+
+                                TextInput::make("redevance")
+                                    ->label("redevance")
+                                    ->dehydrated(false)
+                                    ->disabled(),
+
+                                TextInput::make("an_bonus")
+                                    ->label("Années bonus")
+                                    ->dehydrated(false)
+                                    ->disabled(),
+                            ])
                     ])
             ]);
     }
