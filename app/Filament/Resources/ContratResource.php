@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\BureauPoste;
+use Filament\Forms\Components\Section;
 use Schema;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -16,6 +18,7 @@ use App\Functions\Functions;
 use App\Models\CategoriePro;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Resources\Resource;
+use App\Forms\Components\CfeField;
 use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\Grid;
@@ -57,19 +60,15 @@ class ContratResource extends Resource
 
                         IdentityViewer::make(""),
 
-                        FileUpload::make("document_name")
-                            ->label("")
-                            ->preserveFilenames()
-                            ->imageEditor(true)
-                            ->columnSpanFull()
-                            ->hidden()
+                        CfeField::make("cfe")
+                            ->label("Carte CFE"),
 
                     ])
                 ,
 
                 Fieldset::make("Informations de l'abonné")
 
-                    
+
                     ->schema([
 
                         Grid::make(3)
@@ -167,7 +166,7 @@ class ContratResource extends Resource
                                 Select::make('code_categ_prof')
                                     ->label('Catégorie professionnelle')
                                     ->searchable()
-                                    ->options(CategoriePro::pluck("libelle_categ_prof","code_categ_prof")),
+                                    ->options(CategoriePro::pluck("libelle_categ_prof", "code_categ_prof")),
 
                                 Select::make('code_ville')
                                     ->label('Ville')
@@ -188,21 +187,18 @@ class ContratResource extends Resource
                                     ->options(TypePiece::pluck("libelle_piece", "code_type_piece"))
                                     ->searchable(),
 
-                                    TextInput::make('nationalite')
+                                TextInput::make('nationalite')
                                     ->label('Nationalité')
                                     ->placeholder('-'),
 
-                                RichEditor::make('infos_compl')
+                                TextInput::make('infos_compl')
                                     ->label('Informations complémentaires')
                                     ->placeholder('-')
-                                    ->columnSpanFull()
-                                    ->disableToolbarButtons([
-                                      
-                                    ]),
+                                    ->columnSpanFull(),
 
-                                
 
-                                    
+
+
 
                             ]),
 
@@ -222,8 +218,9 @@ class ContratResource extends Resource
                                     ->label('Date du règlement')
                                     ->format('d/m/Y'),
 
-                                TextInput::make('code_bureau')
-                                    ->label('Bureau de poste'),
+                                Select::make('code_bureau')
+                                    ->label('Bureau de poste')
+                                    ->options(BureauPoste::pluck("designation_buro", "code_bureau")),
 
                                 TextInput::make('designation_bp')
                                     ->label('Désignation boîte'),
@@ -235,8 +232,97 @@ class ContratResource extends Resource
                                 DatePicker::make('date_fin_contrat')
                                     ->label('Fin du contrat')
                                     ->format('d/m/Y'),
+
+                                TextInput::make('montant_reglement')
+                                    ->label('Montant payé')
+                                    ->columnSpanFull(),
                             ]),
+
+
                     ]),
+
+                Section::make("Tarification")
+                ->hiddenOn("view")
+                    ->schema([
+
+                        Grid::make(2)
+                            ->schema([
+
+                                Select::make('categ_pro')
+                                    ->label('Catégorie professionnelle')
+                                    ->searchable()
+                                    ->dehydrated(false)
+                                    ->options(CategoriePro::pluck("libelle_categ_prof", "code_categ_prof")),
+
+                                TextInput::make('duree_abonnement')
+                                    ->label("Durée de l'abonnement")
+                                    ->suffix("années")
+                                    ->live()
+                                    ->dehydrated(false)
+                                    ->afterStateUpdated(function($set, $get, $record){
+
+                                        $codeSousGroupe = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", [$record->code_categ_prof])->first()->code_sous_gpe;
+ 
+                                        $idService = 1; //static
+
+                                        $idRegroup = 2 ;
+
+                                        $idParamFacturation = 1;
+
+                                        $code_bureau = $record->code_bureau;
+                                         
+                                        $dates = Carbon::parse($record->date_debut_contrat)->format("Y/m/d");
+
+                                        $au = Carbon::parse($record->date_fin_contrat)->format("Y/m/d");
+
+                                        $duree =$get("duree_abonnement");
+
+                                        $codeTypeOperation = DB::table("boite.operation")->whereRaw("id_operation = ?", [$record->id_operation])->first()->code_type_op;
+
+                                        $soumisTva = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", [$record->code_categ_prof])->first()->soumis_tva;
+
+                                        $result = StoredProcedures::getTarifs($codeSousGroupe , $idService,$idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, $codeTypeOperation, $soumisTva);
+
+                                    
+
+                                         $set("redevancebp",$result["redevance_bp"]);
+                                         $set("penalite",$result["penalite"]);
+                                         $set("taxe_fixe",$result["taxe_fixe"]);
+                                         $set("tva",$result["tva"]);
+                                         $set("redevance",$result["redevance"]);
+                                         $set("an_bonus",$result["an_bonus"]);
+                                    }),
+                            ]),
+
+                       Grid::make(3)
+                       ->schema([
+                        TextInput::make("redevancebp")
+                        ->label("Montant à payer")
+                        ->dehydrated(false)
+                        ->disabled(),
+
+                        TextInput::make("penalite")
+                        ->label("penalite")
+                        ->dehydrated(false)
+                        ->disabled(),
+                        TextInput::make("taxe_fixe")
+                        ->label("Taxe fixe")
+                        ->dehydrated(false)
+                        ->disabled(),
+                        TextInput::make("tva")
+                        ->label("TVA")
+                        ->dehydrated(false)
+                        ->disabled(),
+                        TextInput::make("redevance")
+                        ->label("redevance")
+                        ->dehydrated(false)
+                        ->disabled(),
+                        TextInput::make("an_bonus")
+                        ->label("Années bonus")
+                        ->dehydrated(false)
+                        ->disabled(),
+                       ])
+                    ])
             ]);
     }
 
@@ -246,8 +332,8 @@ class ContratResource extends Resource
             ->columns([
 
                 TextColumn::make('ref_contrat')
-                ->label('Référence du contrat')
-                ->placeholder('-'),
+                    ->label('Référence du contrat')
+                    ->placeholder('-'),
 
                 // TextColumn::make("id_bp")
                 //     ->label("ID de la boîte")
@@ -259,31 +345,32 @@ class ContratResource extends Resource
 
                 //     }),
 
-                // TextColumn::make('id_reglement')
-                //     ->label('ID règlement')
-                //     ->placeholder('-'),
 
                 BadgeColumn::make("libelle_etat_contrat")
                     ->label("Statut du contrat")
-                    ->color(function($state){
+                    ->color(function ($state) {
                         $return = null;
-                        switch($state){
-                            case "CONTRAT EN COURS" : $return = Color::Green;
-                            break;
+                        switch ($state) {
+                            case "CONTRAT EN COURS":
+                                $return = Color::Green;
+                                break;
 
-                            case "CONTRAT RESILIE" : $return = Color::Orange;
-                            break;
+                            case "CONTRAT RESILIE":
+                                $return = Color::Orange;
+                                break;
 
-                            case "CONTRAT BLOQUE" : $return = Color::Red;
-                            break;
+                            case "CONTRAT BLOQUE":
+                                $return = Color::Red;
+                                break;
 
-                            case "CONTRAT INITIE" : $return = Color::Blue;
-                            break;
+                            case "CONTRAT INITIE":
+                                $return = Color::Blue;
+                                break;
                         }
 
                         return $return;
                     }),
-                   
+
 
                 TextColumn::make('nom_abonne')
                     ->label('Nom abonné')
@@ -307,10 +394,10 @@ class ContratResource extends Resource
                     ->label('Raison sociale')
                     ->placeholder('-'),
 
-                TextColumn::make('telephone')
-                    ->label('Téléphone')
-                    ->badge()
-                    ->placeholder('-'),
+                // TextColumn::make('telephone')
+                //     ->label('Téléphone')
+                //     ->badge()
+                //     ->placeholder('-'),
 
                 TextColumn::make('date_reglement')
                     ->label('Date de règlement')
@@ -322,17 +409,17 @@ class ContratResource extends Resource
                 // TextColumn::make('montant_reglement')
                 //     ->label('Montant'),
 
-                TextColumn::make('date_debut_contrat')
-                    ->label('Début du contrat')
-                    ->badge()
-                    ->color(Color::Green)
-                    ->date('d/m/Y'),
+                // TextColumn::make('date_debut_contrat')
+                //     ->label('Début du contrat')
+                //     ->badge()
+                //     ->color(Color::Green)
+                //     ->date('d/m/Y'),
 
-                TextColumn::make('date_fin_contrat')
-                    ->label('Fin du contrat')
-                    ->badge()
-                    ->color(Color::Red)
-                    ->date('d/m/Y'),
+                // TextColumn::make('date_fin_contrat')
+                //     ->label('Fin du contrat')
+                //     ->badge()
+                //     ->color(Color::Red)
+                //     ->date('d/m/Y'),
 
                 TextColumn::make('code_bureau')
                     ->label('Bureau de poste')
@@ -347,20 +434,17 @@ class ContratResource extends Resource
                     })
                     ->placeholder('-'),
 
-                TextColumn::make('designation_bp')
-                    ->label('Désignation boîte')
-                    ->badge()
-                    ->color(Color::Blue)
-                    ->placeholder('-'),
+                // TextColumn::make('designation_bp')
+                //     ->label('Désignation boîte')
+                //     ->badge()
+                //     ->color(Color::Blue)
+                //     ->placeholder('-'),
 
-                    // TextColumn::make('id_operation')
-                    // ->label('operation')
-                    // ->badge()
-                    // ->color(Color::Blue)
-                    // ->placeholder('-'),
-
-
-                // IdentityColumn::make("piece")
+                // TextColumn::make('id_operation')
+                // ->label('operation')
+                // ->badge()
+                // ->color(Color::Blue)
+                // ->placeholder('-'),
 
             ])
             ->filters([
@@ -408,47 +492,42 @@ class ContratResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                ->using(function (Model $record, array $data): Model {
+                    ->using(function (Model $record, array $data): Model {
 
-                    $abonne = Abonne::find($record->id_abonne);
+                        $abonne = Abonne::find($record->id_abonne);
 
-                    $abonne->update([
-                        "nom" => $data["nom_abonne"],
-                        "prenoms" => $data["prenom_abonne"],
-                        "raison_sociale" => $data["raison_sociale"],
-                        "nationalite" => $data["nationalite"],
-                        "tel_fixe" => $data["tel_fixe"],
-                        "num_piece" => $data["num_piece"],
-                        "infos_compl" => $data["infos_compl"],
-                        "titre" => $data["titre"],
-                        "date_deliv_piece" => $data["date_deliv_piece"],
-                        "autorite_deliv_piece" => $data["autorite_deliv_piece"],
-                        "tel_mobile" => $data["tel_mobile"],
-                        "email" => $data["email"],
-                        "nom_maison" => $data["nom_maison"],
-                        "num_maison" => $data["num_maison"],
-                        "nom_rue" => $data["nom_rue"],
-                        "num_rue" => $data["num_rue"],
-                        "quartier" => $data["quartier"],
-                        "premier_resp" => $data["premier_resp"],
-                        "datenais" => $data["datenais"],
-                        "num_cpte" => $data["num_cpte"],
-
-                        ////////////////////////////////////////////
-                        "code_categ_prof" => $data["code_categ_prof"],
-
-                        /////////////////////////
-
-                        "code_type_piece" => $data["code_type_piece"],
-                        "code_ville" => $data["code_ville"],
-                        "banque" => $data["banque"],
-                        "email2" => $data["email2"],
+                        $abonne->update([
+                            "nom" => $data["nom_abonne"],
+                            "prenoms" => $data["prenom_abonne"],
+                            "raison_sociale" => $data["raison_sociale"],
+                            "nationalite" => $data["nationalite"],
+                            "tel_fixe" => $data["tel_fixe"],
+                            "num_piece" => $data["num_piece"],
+                            "infos_compl" => $data["infos_compl"],
+                            "titre" => $data["titre"],
+                            "date_deliv_piece" => $data["date_deliv_piece"],
+                            "autorite_deliv_piece" => $data["autorite_deliv_piece"],
+                            "tel_mobile" => $data["tel_mobile"],
+                            "email" => $data["email"],
+                            "nom_maison" => $data["nom_maison"],
+                            "num_maison" => $data["num_maison"],
+                            "nom_rue" => $data["nom_rue"],
+                            "num_rue" => $data["num_rue"],
+                            "quartier" => $data["quartier"],
+                            "premier_resp" => $data["premier_resp"],
+                            "datenais" => $data["datenais"],
+                            "num_cpte" => $data["num_cpte"],
+                            "code_categ_prof" => $data["code_categ_prof"],
+                            "code_type_piece" => $data["code_type_piece"],
+                            "code_ville" => $data["code_ville"],
+                            "banque" => $data["banque"],
+                            "email2" => $data["email2"],
 
 
-                    ]);
+                        ]);
 
-                    return $record;
-                }),
+                        return $record;
+                    }),
 
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([
@@ -472,22 +551,29 @@ class ContratResource extends Resource
 
                             }),
 
-                            Action::make('notifier')
+                        Action::make('notifier')
+                            ->label("Notifier l'abonné")
+                            ->modalDescription("sur?")
                             ->form([
                                 Placeholder::make("categ_pro")
                                     ->label("Catégorie professionnelle")
                                     ->content(fn($record) => $record->libelle_categ_prof),
 
                                 TextInput::make("tarif")
-                                    ->formatStateUsing(function($record){
+                                    ->formatStateUsing(function ($record) {
 
-                                        $response = Http::post('192.168.60.43:8080/boitepostale-api/boitemanagement/tarifAbonnement', [
-                                            'codeCategProf' => 'Steve',
-                                            'codeBureau' => 'Network Administrator',
-                                            'duree' => 'Network Administrator',
-                                            'codeTypeOp' => 'Network Administrator',
-                                            
-                                        ]);
+
+
+                                        // $response = Http::get('192.168.60.43:8080/boitepostale-api/boitemanagement/tarifAbonnement', [
+                                        //     'codeCategProf' =>  $record->code_categ_prof,
+                                        //     'codeBureau' => $record->code_bureau,
+                                        //     'duree' => $record->validite_annee,
+                                        //     'codeTypeOp' => $record->code_type_op,
+                            
+                                        // ]);
+                            
+                                        // dd($response->body(),   $record->code_categ_prof,   $record->code_bureau ,  $record->validite_annee, $record->code_type_op);
+                            
                                     })
                                     ->disabled()
 
@@ -497,7 +583,7 @@ class ContratResource extends Resource
                             ->color(Color::Yellow)
                             ->action(function ($record) {
 
-                            //    $result = StoredProcedures::getTarifs(4,1,1,1, '01/01/24',  '01/01/26', 924,2,1,1);
+                                Functions::sendRecallSms($record);
 
                             }),
 
@@ -505,7 +591,7 @@ class ContratResource extends Resource
                             ->label("contrat")
                             ->icon('heroicon-o-arrow-down-tray')
                             ->color('success')
-                            ->visible(fn($record) => $record->code_etat_contrat == 0? true: false) //  0 => en cours || 1 => resilié || 2 => bloque
+                            ->visible(fn($record) => $record->code_etat_contrat == 0 ? true : false) //  0 => en cours || 1 => resilié || 2 => bloque
                             // ->url(fn( array $record) => route('contrat.pdf.ddl', $record))
                             ->action(function (Model $record) {
 
@@ -513,7 +599,7 @@ class ContratResource extends Resource
                                     echo Pdf::loadHtml(
                                         Blade::render('contrat', ['record' => $record])
                                     )->stream();
-                                }, $record->ref_contrat.$record->nom_abonne.'.pdf');
+                                }, $record->ref_contrat . $record->nom_abonne . '.pdf');
                             })
 
 

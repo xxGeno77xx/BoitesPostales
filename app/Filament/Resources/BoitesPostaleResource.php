@@ -64,12 +64,6 @@ class BoitesPostaleResource extends Resource
                         CfeField::make("cfe")
                         ->label("Carte CFE"),
 
-                        // FileUpload::make("document_name")
-                        //     ->label("")
-                        //     ->preserveFilenames()
-                        //     ->imageEditor(true)
-                        //     ->columnSpanFull()
-                        //     ->hiddenOn("edit")
 
                     ])
                 ,
@@ -81,7 +75,6 @@ class BoitesPostaleResource extends Resource
 
                         Grid::make(3)
                             ->schema([
-
 
                                 TextInput::make('nom_abonne')
                                     ->label('Nom abonné')
@@ -106,7 +99,6 @@ class BoitesPostaleResource extends Resource
                                     ->label('Numéro de la pièce')
                                     ->placeholder('-'),
 
-
                                 TextInput::make('titre')
                                     ->label('Titre')
                                     ->placeholder('-'),
@@ -125,12 +117,10 @@ class BoitesPostaleResource extends Resource
                                     ->placeholder('-')
                                     ->numeric(),
 
-
                                 TextInput::make('email')
                                     ->label('Email')
                                     ->email()
                                     ->placeholder('-'),
-
 
                                 TextInput::make('nom_maison')
                                     ->label('Maison')
@@ -199,17 +189,10 @@ class BoitesPostaleResource extends Resource
                                     ->label('Nationalité')
                                     ->placeholder('-'),
 
-                                RichEditor::make('infos_compl')
+                                    TextInput::make('infos_compl')
                                     ->label('Informations complémentaires')
                                     ->placeholder('-')
-                                    ->columnSpanFull()
-                                    ->disableToolbarButtons([
-                                      
-                                    ]),
-
-                                
-
-                                    
+                                    ->columnSpanFull(),
 
                             ]),
 
@@ -443,6 +426,7 @@ class BoitesPostaleResource extends Resource
 
                         $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
 
+ 
                         try {
 
                             Contrat::firstOrCreate([
@@ -452,7 +436,7 @@ class BoitesPostaleResource extends Resource
                                 "contrat_source" => null,
                                 "date_debut_contrat" => $record->date_reglement,
                                 "date_derniere_facture" => $record->date_reglement,
-                                "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($record->validite_annee),
+                                "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears(2),//  TODO: $record->validite_annee
                                 "date_resiliation" => null,
                                 "date_resiliation_off" => null,
                                 "id_abonne" => $record->id_abonne,

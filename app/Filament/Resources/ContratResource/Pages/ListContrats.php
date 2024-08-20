@@ -28,12 +28,11 @@ class ListContrats extends ListRecords
         ->join('boite.operation', 'boite.operation.id_bp', 'boite.boite_postale.id_bp')
         ->join('boite.reglement', 'boite.reglement.id_operation', 'boite.operation.id_operation')
         ->join('boite.abonne', 'boite.abonne.id_abonne', 'boite.operation.id_abonne')
-        ->leftjoin("categorie_professionnelle", "categorie_professionnelle.code_categ_prof", "boite.abonne.code_categ_prof")
+        ->leftjoin("boite.categorie_professionnelle", "boite.categorie_professionnelle.code_categ_prof", "boite.abonne.code_categ_prof")
         ->leftjoin("boite.type_piece", "boite.type_piece.code_type_piece", "boite.abonne.code_type_piece")
         ->leftjoin('boite.ville', 'boite.ville.code_ville','boite.abonne.code_ville')
         ->join("boite.contrat", "boite.contrat.id_operation", "reglement.id_operation")
         ->join("boite.etat_contrat","boite.etat_contrat.code_etat_contrat", "boite.contrat.code_etat_contrat")
-              
         ->selectRaw(
             
                ' 
@@ -79,7 +78,17 @@ class ListContrats extends ListRecords
                 boite.abonne.nationalite,
                 boite.etat_contrat.libelle_etat_contrat,
                 boite.contrat.code_etat_contrat,
-                boite.abonne.id_abonne
+                boite.abonne.id_abonne,
+                boite.abonne.code_categ_prof,
+                boite.abonne.code_ville,
+                boite.abonne.code_type_piece,
+                boite.operation.code_type_op,
+                boite.operation.validite_annee,
+                boite.categorie_professionnelle.soumis_tva
+                 
+           
+                
+
                  
           
                 '

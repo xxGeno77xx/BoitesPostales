@@ -154,4 +154,57 @@ class Functions
 
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
+
+
+
+
+    public static function setRecalParam($record)
+    {
+
+   
+
+        $refSms = Str::random(10);
+
+        $telephone = 22891568182;  //        // TODO:  $record->telephone;
+
+        $message = 'VOUS ETES PIRES DE PASSER EN AGENCE CORRIGER VOS INFORMATIONS RELATIVES A VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE. MERCI';
+
+        $dateSms = Carbon::parse(today())->format('d/m/y');
+
+        $bureau = BureauPoste::find($record->code_bureau);
+
+        if (! is_null($bureau)) {
+            $origine = $bureau->libelle_poste;
+        } else {
+            $origine = $record->code_bureau;
+        }
+
+        return [
+            'refSms' => $refSms,
+            'telephone' => $telephone,
+            'message' => $message,
+            'dateSms' => $dateSms,
+            'origine' => $origine,
+            'bureau' => $bureau,
+
+        ];
+
+    }
+
+    /** 
+     * @function  // sends RECALL sms via stored procedure
+     */
+
+    public static function sendRecallSms($record)
+    {
+       
+        $data = Functions::setRecalParam($record); 
+
+        Notification::make('recall')
+            ->body('SMS envoyé!')
+            ->color(Color::Blue)
+            ->send();
+
+        return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
+    }
 }

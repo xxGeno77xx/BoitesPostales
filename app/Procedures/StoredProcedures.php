@@ -55,7 +55,7 @@ class StoredProcedures
 
             $pdo = DB::getPdo();
 
-            $procedure = $pdo->prepare('begin procedures.tarif_abonnement_boite(
+            $procedure = $pdo->prepare("begin procedures.tarif_abonnement_boite(
                 :codesousgpe,
                 :idservice,
                 :idregroup,
@@ -71,29 +71,27 @@ class StoredProcedures
                 :taxe_fixe,
                 :tva,
                 :redevance,
-                :an_bonus); end;');
+                :an_bonus); end;");
 
-            $code = str_repeat(' ', 10);  // Pré-allocation de l'espace pour les variables OUT
-            $info = str_repeat(' ', 100);
+            // $code = str_repeat(' ', 10);  // Pré-allocation de l'espace pour les variables OUT
+            // $info = str_repeat(' ', 100);
 
-            $procedure->bindParam(':codesousgpe', $codesousgpe, PDO::PARAM_STR);
-            $procedure->bindParam(':idservice', $idservice, PDO::PARAM_STR);
-            $procedure->bindParam(':idregroup', $idregroup, PDO::PARAM_STR);
-            $procedure->bindParam(':idparam_facturation', $idparam_facturation, PDO::PARAM_STR);
+            $procedure->bindParam(':codesousgpe', $codesousgpe, PDO::PARAM_INT);
+            $procedure->bindParam(':idservice', $idservice, PDO::PARAM_INT);
+            $procedure->bindParam(':idregroup', $idregroup, PDO::PARAM_INT);
+            $procedure->bindParam(':idparam_facturation', $idparam_facturation, PDO::PARAM_INT);
             $procedure->bindParam(':dates', $dates, PDO::PARAM_STR);
             $procedure->bindParam(':au', $au, PDO::PARAM_STR);
-            $procedure->bindParam(':code_bureau', $code_bureau, PDO::PARAM_STR);
-            $procedure->bindParam(':duree', $duree, PDO::PARAM_STR);
-            $procedure->bindParam(':code_type_op', $code_type_op, PDO::PARAM_STR);
-            $procedure->bindParam(':soumis_tva', $soumis_tva, PDO::PARAM_STR);
-            $procedure->bindParam(':redevance_bp', $redevance_bp, PDO::PARAM_STR);
-            $procedure->bindParam(':penalite', $penalite, PDO::PARAM_STR);
-            $procedure->bindParam(':taxe_fixe', $taxe_fixe, PDO::PARAM_STR);
-            $procedure->bindParam(':tva', $tva, PDO::PARAM_STR);
-            $procedure->bindParam(':redevance', $redevance, PDO::PARAM_STR);
-            $procedure->bindParam(':an_bonus', $an_bonus, PDO::PARAM_STR);
-
-
+            $procedure->bindParam(':code_bureau', $code_bureau, PDO::PARAM_INT);
+            $procedure->bindParam(':duree', $duree, PDO::PARAM_INT);
+            $procedure->bindParam(':code_type_op', $code_type_op, PDO::PARAM_INT);
+            $procedure->bindParam(':soumis_tva', $soumis_tva, PDO::PARAM_INT);
+            $procedure->bindParam(':redevance_bp', $redevance_bp, PDO::PARAM_INT);
+            $procedure->bindParam(':penalite', $penalite, PDO::PARAM_INT);
+            $procedure->bindParam(':taxe_fixe', $taxe_fixe, PDO::PARAM_INT);
+            $procedure->bindParam(':tva', $tva, PDO::PARAM_INT);
+            $procedure->bindParam(':redevance', $redevance, PDO::PARAM_INT);
+            $procedure->bindParam(':an_bonus', $an_bonus, PDO::PARAM_INT);
 
             $procedure->execute();
 
@@ -105,8 +103,15 @@ class StoredProcedures
                 ->send();
         }
 
-      
+        return [
 
-        return [$redevance_bp, $penalite, $taxe_fixe, $tva, $redevance, $an_bonus];
+                "redevance_bp" => $redevance_bp,
+                "penalite" => $penalite,
+                "taxe_fixe" => $taxe_fixe,
+                "tva" => $tva,
+                "redevance" => $redevance,
+                "an_bonus" => $an_bonus
+        
+        ];
     }
 }
