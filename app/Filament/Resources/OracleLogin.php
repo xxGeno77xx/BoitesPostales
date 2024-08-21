@@ -2,29 +2,32 @@
 
 namespace Filament\Pages\Auth;
 
-use App\Models\DbaUser;
 use App\Models\SessionCaisse;
 use App\Models\User;
-use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
-use DanHarrin\LivewireRateLimiting\WithRateLimiting;
-use Filament\Actions\Action;
-use Filament\Actions\ActionGroup;
-use Filament\Facades\Filament;
-use Filament\Forms\Components\Component;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\TextInput;
+use App\Models\DbaUser;
 use Filament\Forms\Form;
-use Filament\Http\Responses\Auth\Contracts\LoginResponse;
-use Filament\Notifications\Notification;
-use Filament\Pages\Concerns\InteractsWithFormActions;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Filament\Actions\Action;
+use Filament\Facades\Filament;
+use Filament\Pages\SimplePage;
+use Filament\Actions\ActionGroup;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Filament\Forms\Components\Hidden;
+use Illuminate\Support\Facades\Blade;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Component;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Illuminate\Contracts\Support\Htmlable;
+use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Validation\ValidationException;
+use DanHarrin\LivewireRateLimiting\WithRateLimiting;
+use Filament\Pages\Concerns\InteractsWithFormActions;
+use Filament\Http\Responses\Auth\Contracts\LoginResponse;
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 
 /**
  * @property Form $form
@@ -62,26 +65,42 @@ class OracleLogin extends Login
     public function authenticate(): ?LoginResponse
     {
 
+
+
+        // $connString = "(DESCRIPTION =(ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.60.34)(PORT = 5500))) (CONNECT_DATA = (SERVICE_NAME = dbpost)))";
+
+        // $authenticationLimit = config('app.LOGIN_LIMIT', 4);
+
         $data = $this->form->getState();
 
-        $oracleuser = DbaUser::where('username', strtoupper($data['username']))->first();
+        // oci_connect(strtoupper($data['username']), $data['password'],  $connString);
+ 
+        $oracleuser = DbaUser::where("username", strtoupper($data["username"]))->first();
 
-        
-                                                          
-        
 
         try {
 
-            $this->rateLimit(5);
+            $this->rateLimit(5); 
 
             try {
 
-                $numeroCaisse = DB::table('spt.caissier')->whereRaw('LOWER(spt.caissier.nom_caissier) = LOWER(rtrim(?))', [($oracleuser->username)])->first()->code_agence;
+                $numeroCaisse = DB::table("caissier")->whereRaw("rtrim(nom_caissier) = rtrim(?)", [ $oracleuser->name])->first();
+                 
 
-                $conn = oci_connect(strtoupper($data['username']), $data['password'], env('CONNECTION'));
+                $conn = oci_connect(strtoupper($data['username']), $data['password'],  env("CONNECTION"));
 
-                
+                if($numeroCaisse != null)
+                {
+                    SessionCaisse::create([
+                        "numero_caisse" =>  $numeroCaisse->numero_caisse ,
+                        "numero_caissier" =>  $numeroCaisse->numero_caissier,
+                        "date_session" => today() ,
+                        "utilisateur" => strtoupper($data['username']),
+                        "numero_session" =>  SessionCaisse::orderBy("numero_session", 'desc')->first()->numero_session ,
+                    ]);
 
+                }
+              
             } catch (\ErrorException $e) {
 
                 if ($oracleuser) {
@@ -89,9 +108,9 @@ class OracleLogin extends Login
                         throw ValidationException::withMessages(['username' => 'Votre compte est bloqué, veuiller contactez votre administrateur.']);
                     }
                 }
-
+                
                 $this->throwFailureValidationException();
-
+                
             }
 
         } catch (TooManyRequestsException $exception) {
@@ -110,20 +129,19 @@ class OracleLogin extends Login
             return null;
         }
 
+
         $userToLogIn = User::where('username', $data['username'])->first();
- 
         
-        if (! $userToLogIn) {
+        if (!$userToLogIn) {
 
             $createUser = User::create([
                 'email' => Str::random(100).'@laposte.tg',
                 'password' => Hash::make('L@poste+2024'),
                 'name' => $data['username'],
                 'username' => $data['username'],
-                'code_bureau' => $numeroCaisse
             ]);
 
-            $newUser = User::where('name', $data['username'])->first();
+            $newUser = User::where("name", $data['username'])->first();
 
             Auth::login($newUser);
 
@@ -134,6 +152,8 @@ class OracleLogin extends Login
         }
 
         session()->regenerate();
+
+
 
         return app(LoginResponse::class);
     }
@@ -208,7 +228,7 @@ class OracleLogin extends Login
     /**
      * @return array<Action | ActionGroup>
      */
-    public function getFormActions(): array
+    protected function getFormActions(): array
     {
         return [
             $this->getAuthenticateFormAction(),
