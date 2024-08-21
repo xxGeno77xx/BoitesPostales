@@ -62,7 +62,7 @@ class BoitesPostaleResource extends Resource
 
                         CfeField::make("cfe")
                             ->label("Carte CFE")
-                            ->visible(fn($record) => $record->cfe_document_name == null? false : true),
+                            ->visible(fn($record) => $record->cfe_document_name == null ? false : true),
 
 
                     ])
@@ -70,7 +70,7 @@ class BoitesPostaleResource extends Resource
 
                 Fieldset::make("Informations de l'abonné")
 
-                    
+
                     ->schema([
 
                         Grid::make(3)
@@ -164,7 +164,7 @@ class BoitesPostaleResource extends Resource
                                 Select::make('code_categ_prof')
                                     ->label('Catégorie professionnelle')
                                     ->searchable()
-                                    ->options(CategoriePro::pluck("libelle_categ_prof","code_categ_prof")),
+                                    ->options(CategoriePro::pluck("libelle_categ_prof", "code_categ_prof")),
 
                                 Select::make('code_ville')
                                     ->label('Ville')
@@ -185,11 +185,11 @@ class BoitesPostaleResource extends Resource
                                     ->options(TypePiece::pluck("libelle_piece", "code_type_piece"))
                                     ->searchable(),
 
-                                    TextInput::make('nationalite')
+                                TextInput::make('nationalite')
                                     ->label('Nationalité')
                                     ->placeholder('-'),
 
-                                    TextInput::make('infos_compl')
+                                TextInput::make('infos_compl')
                                     ->label('Informations complémentaires')
                                     ->placeholder('-')
                                     ->columnSpanFull(),
@@ -215,7 +215,7 @@ class BoitesPostaleResource extends Resource
                                     ->disabled()
                                     ->dehydrated(false),
 
-                                    TextInput::make('montant_reglement')
+                                TextInput::make('montant_reglement')
                                     ->label('Montant du règlement')
                                     ->placeholder('-')
                                     ->disabled()
@@ -237,7 +237,7 @@ class BoitesPostaleResource extends Resource
                                     ->label('Désignation boîte')
                                     ->disabled()
                                     ->dehydrated(false),
-                                
+
                                 TextInput::make('id_bp')
                                     ->label('ID de la boîte postale')
                                     ->placeholder('-')
@@ -266,9 +266,9 @@ class BoitesPostaleResource extends Resource
 
                     }),
 
-                TextColumn::make('id_reglement')
-                    ->label('ID règlement')
-                    ->placeholder('-'),
+                // TextColumn::make('id_reglement')
+                //     ->label('ID règlement')
+                //     ->placeholder('-'),
 
                 TextColumn::make('nom_abonne')
                     ->label('Nom abonné')
@@ -304,10 +304,10 @@ class BoitesPostaleResource extends Resource
                     ->date('d/m/y')
                     ->placeholder('-'),
 
-                TextColumn::make('montant_reglement')
-                    ->label('Montant'),
+                // TextColumn::make('montant_reglement')
+                //     ->label('Montant'),
 
-                    
+
 
 
                 TextColumn::make('code_bureau')
@@ -323,11 +323,11 @@ class BoitesPostaleResource extends Resource
                     })
                     ->placeholder('-'),
 
-                TextColumn::make('designation_bp')
-                    ->label('Désignation boîte')
-                    ->badge()
-                    ->color(Color::Blue)
-                    ->placeholder('-'),
+                // TextColumn::make('designation_bp')
+                //     ->label('Désignation boîte')
+                //     ->badge()
+                //     ->color(Color::Blue)
+                //     ->placeholder('-'),
 
                 // IdentityColumn::make("piece")
 
@@ -377,66 +377,75 @@ class BoitesPostaleResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                ->using(function (Model $record, array $data): Model {
+                    ->using(function (Model $record, array $data): Model {
 
-                    $abonne = Abonne::find($record->id_abonne);
+                        $abonne = Abonne::find($record->id_abonne);
 
-                    $abonne->update([
-                        "nom" => $data["nom_abonne"],
-                        "prenoms" => $data["prenom_abonne"],
-                        "raison_sociale" => $data["raison_sociale"],
-                        "nationalite" => $data["nationalite"],
-                        "tel_fixe" => $data["tel_fixe"],
-                        "num_piece" => $data["num_piece"],
-                        "infos_compl" => $data["infos_compl"],
-                        "titre" => $data["titre"],
-                        "date_deliv_piece" => $data["date_deliv_piece"],
-                        "autorite_deliv_piece" => $data["autorite_deliv_piece"],
-                        "tel_mobile" => $data["tel_mobile"],
-                        "email" => $data["email"],
-                        "nom_maison" => $data["nom_maison"],
-                        "num_maison" => $data["num_maison"],
-                        "nom_rue" => $data["nom_rue"],
-                        "num_rue" => $data["num_rue"],
-                        "quartier" => $data["quartier"],
-                        "premier_resp" => $data["premier_resp"],
-                        "datenais" => $data["datenais"],
-                        "num_cpte" => $data["num_cpte"],
+                        $abonne->update([
+                            "nom" => $data["nom_abonne"],
+                            "prenoms" => $data["prenom_abonne"],
+                            "raison_sociale" => $data["raison_sociale"],
+                            "nationalite" => $data["nationalite"],
+                            "tel_fixe" => $data["tel_fixe"],
+                            "num_piece" => $data["num_piece"],
+                            "infos_compl" => $data["infos_compl"],
+                            "titre" => $data["titre"],
+                            "date_deliv_piece" => $data["date_deliv_piece"],
+                            "autorite_deliv_piece" => $data["autorite_deliv_piece"],
+                            "tel_mobile" => $data["tel_mobile"],
+                            "email" => $data["email"],
+                            "nom_maison" => $data["nom_maison"],
+                            "num_maison" => $data["num_maison"],
+                            "nom_rue" => $data["nom_rue"],
+                            "num_rue" => $data["num_rue"],
+                            "quartier" => $data["quartier"],
+                            "premier_resp" => $data["premier_resp"],
+                            "datenais" => $data["datenais"],
+                            "num_cpte" => $data["num_cpte"],
 
-                        ////////////////////////////////////////////
-                        "code_categ_prof" => $data["code_categ_prof"],
+                            ////////////////////////////////////////////
+                            "code_categ_prof" => $data["code_categ_prof"],
 
-                        /////////////////////////
+                            /////////////////////////
+            
+                            "code_type_piece" => $data["code_type_piece"],
+                            "code_ville" => $data["code_ville"],
+                            "banque" => $data["banque"],
+                            "email2" => $data["email2"],
 
-                        "code_type_piece" => $data["code_type_piece"],
-                        "code_ville" => $data["code_ville"],
-                        "banque" => $data["banque"],
-                        "email2" => $data["email2"],
 
+                        ]);
 
-                    ]);
+                        return $record;
+                    }),
 
-                    return $record;
-                }),
+                   
 
                 Action::make("enregistrer")
                     ->action(function ($record) {
-
+                       
                         $sequence = DB::getSequence();
 
                         $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
 
- 
+                        $duree = self::montantCheckForDuree($record);
+
                         try {
+
+                            if(strlen($record->designation_bp) >= 5)
+                            {
+                                $dsesignBP = $premieres_positions = substr($record->designation_bp, 0, 5);
+                            }
+                            else $dsesignBP = str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT);
 
                             Contrat::firstOrCreate([
 
-                                "ref_contrat" => $record->code_bureau . str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT) . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
+                                "ref_contrat" => $record->code_bureau . $dsesignBP. str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
                                 "code_etat_contrat" => 3,
                                 "contrat_source" => null,
                                 "date_debut_contrat" => $record->date_reglement,
                                 "date_derniere_facture" => $record->date_reglement,
-                                "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears(2),//  TODO: $record->validite_annee
+                                "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($duree),
                                 "date_resiliation" => null,
                                 "date_resiliation_off" => null,
                                 "id_abonne" => $record->id_abonne,
@@ -449,8 +458,14 @@ class BoitesPostaleResource extends Resource
                             ]);
                         } catch (\Exception $e) {
 
-                        }
 
+                            Notification::make("error")
+                                ->title("Erreur")
+                                ->body("Erreur lors de la création du contrat:" . $e->getMessage())
+                                ->warning()
+                                ->color(Color::Red)
+                                ->send();
+                        }
 
                         Notification::make("created")
                             ->title("Enregistré(e)")
@@ -460,51 +475,68 @@ class BoitesPostaleResource extends Resource
                     }),
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([
-                            
 
-                                Action::make("enregistrer")
-                                ->action(function ($record) {
-            
-                                    $sequence = DB::getSequence();
-            
-                                    $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
-            
-                                    try {
-            
-                                        Contrat::firstOrCreate([
-            
-                                            "ref_contrat" => $record->code_bureau . str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT) . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
-                                            "code_etat_contrat" => 3,
-                                            "contrat_source" => null,
-                                            "date_debut_contrat" => $record->date_reglement,
-                                            "date_derniere_facture" => $record->date_reglement,
-                                            "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($record->validite_annee),
-                                            "date_resiliation" => null,
-                                            "date_resiliation_off" => null,
-                                            "id_abonne" => $record->id_abonne,
-                                            "id_bp" => $record->id_bp,
-                                            "id_operation" => $record->id_operation,
-                                            "id_service" => 1,
-                                            "periodicite_facturation" => $record->periodicite_facturation,
-                                            "utilisateur" => strtoupper(auth()->user()->name),
-            
-                                        ]);
-                                    } catch (\Exception $e) {
-            
-                                    }
-            
-            
-                                    Notification::make("created")
-                                        ->title("Enregistré(e)")
-                                        ->body("La demande a été enregisttrée")
-                                        ->color(Color::Green)
+
+                        Action::make("enregistrer")
+                            ->action(function ($record, $action) {
+
+                                $sequence = DB::getSequence();
+
+                                $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
+
+                                $duree = self::montantCheckForDuree($record);
+
+
+                                if(strlen($record->designation_bp) >= 5)
+                                {
+                                    $dsesignBP = $premieres_positions = substr($record->designation_bp, 0, 5);
+                                }
+                                else $dsesignBP = str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT);
+
+                                try {
+
+                                    Contrat::firstOrCreate([
+
+                                        "ref_contrat" => $record->code_bureau . $dsesignBP . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
+                                        "code_etat_contrat" => 3,
+                                        "contrat_source" => null,
+                                        "date_debut_contrat" => $record->date_reglement,
+                                        "date_derniere_facture" => $record->date_reglement,
+                                        "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($duree),
+                                        "date_resiliation" => null,
+                                        "date_resiliation_off" => null,
+                                        "id_abonne" => $record->id_abonne,
+                                        "id_bp" => $record->id_bp,
+                                        "id_operation" => $record->id_operation,
+                                        "id_service" => 1,
+                                        "periodicite_facturation" => $record->periodicite_facturation,
+                                        "utilisateur" => strtoupper(auth()->user()->name),
+
+                                    ]);
+                                } catch (\Exception $e) {
+
+                                    // $action()->cancel();
+
+                                    Notification::make("error")
+                                        ->title("Erreur")
+                                        ->body("Erreur lors de la création du contrat:" . $e->getMessage())
+                                        ->warning()
+                                        ->color(Color::Red)
                                         ->send();
+                                }
 
-                                    return redirect(route("filament.admin.resources.boites-postales.index"));
-                                }),
-                        ]),
 
-           
+                                Notification::make("created")
+                                    ->title("Enregistré(e)")
+                                    ->body("La demande a été enregisttrée")
+                                    ->color(Color::Green)
+                                    ->send();
+
+                                return redirect(route("filament.admin.resources.boites-postales.index"));
+                            }),
+                    ]),
+
+
             ])
 
             ->bulkActions([
@@ -529,5 +561,55 @@ class BoitesPostaleResource extends Resource
             'create' => Pages\CreateBoitesPostale::route('/create'),
             // 'edit' => Pages\EditBoitesPostale::route('/{record}/edit'),
         ];
+    }
+
+
+    public static function montantCheckForDuree(mixed $record): int
+    {   //type personne check
+        $result = 0;
+
+    
+            //SG1
+            if ($record->code_sous_gpe == 1 ) {
+
+                if($record->montant_reglement > 47000)
+                {
+                    $result = 6;
+                }
+                else $result = 2;
+
+            } 
+
+            //SG2
+            elseif ($record->code_sous_gpe == 2){
+
+                if($record->montant_reglement > 125000)
+                {
+                    $result = 6;
+                }
+                else $result = 2;
+            }
+
+            //SG3
+            elseif ($record->code_sous_gpe == 3){
+
+                if($record->montant_reglement > 215000)
+                {
+                    $result = 6;
+                }
+                else $result = 2;
+            }
+
+            //personne physique
+            elseif ($record->code_sous_gpe == 4){ 
+
+                if($record->montant_reglement > 21900)
+                {
+                    $result = 6;
+                }
+                else $result = 2;
+            }
+        
+        return $result;
     }
 }

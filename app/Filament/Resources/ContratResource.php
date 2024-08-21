@@ -227,6 +227,10 @@ class ContratResource extends Resource
                                     ->label('Fin du contrat')
                                     ->format('d/m/Y'),
 
+                                    TextInput::make('id_operation')
+                                    ->label('Id de l\'opération')
+                                    ->columnSpanFull(),
+
                                 TextInput::make('montant_reglement')
                                     ->label('Montant payé')
                                     ->columnSpanFull(),
@@ -239,7 +243,6 @@ class ContratResource extends Resource
                         ->default(1),
 
                 Section::make("Tarification")
-                    ->hiddenOn("view")
                     ->schema([
 
                         Radio::make('type_op')
@@ -624,39 +627,17 @@ class ContratResource extends Resource
 
                         Action::make('notifier')
                             ->label("Notifier l'abonné")
-                            ->modalDescription("sur?")
-                            ->form([
-                                Placeholder::make("categ_pro")
-                                    ->label("Catégorie professionnelle")
-                                    ->content(fn($record) => $record->libelle_categ_prof),
-
-                                TextInput::make("tarif")
-                                    ->formatStateUsing(function ($record) {
-
-
-
-                                        // $response = Http::get('192.168.60.43:8080/boitepostale-api/boitemanagement/tarifAbonnement', [
-                                        //     'codeCategProf' =>  $record->code_categ_prof,
-                                        //     'codeBureau' => $record->code_bureau,
-                                        //     'duree' => $record->validite_annee,
-                                        //     'codeTypeOp' => $record->code_type_op,
-                            
-                                        // ]);
-                            
-                                        // dd($response->body(),   $record->code_categ_prof,   $record->code_bureau ,  $record->validite_annee, $record->code_type_op);
-                            
-                                    })
-                                    ->disabled()
-
-                            ])
                             ->requiresConfirmation()
+                            ->modalHeading('Notifier l\'abonné?')
+                            ->modalDescription("En faisant celà, vous informez l'abonné qu'il doit passer en agence compléter ou corriger certaines informations relatives à sa demande d'abonnement.")
                             ->icon('heroicon-o-envelope')
                             ->color(Color::Yellow)
                             ->action(function ($record) {
 
                                 Functions::sendRecallSms($record);
 
-                            }),
+                            })
+                            ->visible(fn($record) => ($record->code_etat_contrat == 0 || $record->code_etat_contrat == 2) ? false : true),
 
                         Action::make('Télécharger')
                             ->label("contrat")

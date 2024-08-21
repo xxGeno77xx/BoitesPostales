@@ -31,9 +31,10 @@ class ListBoitesPostales extends ListRecords
             ->join('boite.operation', 'boite.operation.id_bp', 'boite.boite_postale.id_bp')
             ->join('boite.reglement', 'boite.reglement.id_operation', 'boite.operation.id_operation')
             ->join('boite.abonne', 'boite.abonne.id_abonne', 'boite.operation.id_abonne')
-            ->leftjoin("categorie_professionnelle", "categorie_professionnelle.code_categ_prof", "boite.abonne.code_categ_prof")
+            ->leftjoin("boite.categorie_professionnelle", "boite.categorie_professionnelle.code_categ_prof", "boite.abonne.code_categ_prof")
             ->leftjoin("boite.type_piece", "boite.type_piece.code_type_piece", "boite.abonne.code_type_piece")
             ->leftjoin('boite.ville', 'boite.ville.code_ville', 'boite.abonne.code_ville')
+            ->leftjoin("boite.sous_groupe", "boite.sous_groupe.code_sous_gpe", "boite.categorie_professionnelle.code_sous_gpe")
 
             ->selectRaw(
 
@@ -80,7 +81,9 @@ class ListBoitesPostales extends ListRecords
                 boite.abonne.nationalite,
                 boite.operation.validite_annee,
                 boite.abonne.id_abonne,
-                boite.abonne.cfe_document_name
+                boite.abonne.cfe_document_name,
+                boite.operation.code_type_op,
+                boite.categorie_professionnelle.code_sous_gpe
                  
               
 
