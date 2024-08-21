@@ -314,7 +314,6 @@ class BoitesPostaleResource extends Resource
                     ->label('Bureau de poste')
                     ->formatStateUsing(function ($state) {
 
-
                         $bureauPoste = DB::table("boite.bureau")->whereRaw("code_bureau = ?", [$state])->first();
 
                         $libellePoste = $bureauPoste ? $bureauPoste->designation_buro : $state;
@@ -423,55 +422,9 @@ class BoitesPostaleResource extends Resource
 
                 Action::make("enregistrer")
                     ->action(function ($record) {
+
+                        Self::customCreateLogic($record);
                        
-                        $sequence = DB::getSequence();
-
-                        $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
-
-                        $duree = self::montantCheckForDuree($record);
-
-                        try {
-
-                            if(strlen($record->designation_bp) >= 5)
-                            {
-                                $dsesignBP = $premieres_positions = substr($record->designation_bp, 0, 5);
-                            }
-                            else $dsesignBP = str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT);
-
-                            Contrat::firstOrCreate([
-
-                                "ref_contrat" => $record->code_bureau . $dsesignBP. str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
-                                "code_etat_contrat" => 3,
-                                "contrat_source" => null,
-                                "date_debut_contrat" => $record->date_reglement,
-                                "date_derniere_facture" => $record->date_reglement,
-                                "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($duree),
-                                "date_resiliation" => null,
-                                "date_resiliation_off" => null,
-                                "id_abonne" => $record->id_abonne,
-                                "id_bp" => $record->id_bp,
-                                "id_operation" => $record->id_operation,
-                                "id_service" => 1,
-                                "periodicite_facturation" => $record->periodicite_facturation,
-                                "utilisateur" => strtoupper(auth()->user()->name),
-
-                            ]);
-                        } catch (\Exception $e) {
-
-
-                            Notification::make("error")
-                                ->title("Erreur")
-                                ->body("Erreur lors de la création du contrat:" . $e->getMessage())
-                                ->warning()
-                                ->color(Color::Red)
-                                ->send();
-                        }
-
-                        Notification::make("created")
-                            ->title("Enregistré(e)")
-                            ->body("La demande a été enregisttrée")
-                            ->color(Color::Green)
-                            ->send();
                     }),
                 Tables\Actions\ViewAction::make()
                     ->extraModalFooterActions([
@@ -480,57 +433,7 @@ class BoitesPostaleResource extends Resource
                         Action::make("enregistrer")
                             ->action(function ($record, $action) {
 
-                                $sequence = DB::getSequence();
-
-                                $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
-
-                                $duree = self::montantCheckForDuree($record);
-
-
-                                if(strlen($record->designation_bp) >= 5)
-                                {
-                                    $dsesignBP = $premieres_positions = substr($record->designation_bp, 0, 5);
-                                }
-                                else $dsesignBP = str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT);
-
-                                try {
-
-                                    Contrat::firstOrCreate([
-
-                                        "ref_contrat" => $record->code_bureau . $dsesignBP . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
-                                        "code_etat_contrat" => 3,
-                                        "contrat_source" => null,
-                                        "date_debut_contrat" => $record->date_reglement,
-                                        "date_derniere_facture" => $record->date_reglement,
-                                        "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($duree),
-                                        "date_resiliation" => null,
-                                        "date_resiliation_off" => null,
-                                        "id_abonne" => $record->id_abonne,
-                                        "id_bp" => $record->id_bp,
-                                        "id_operation" => $record->id_operation,
-                                        "id_service" => 1,
-                                        "periodicite_facturation" => $record->periodicite_facturation,
-                                        "utilisateur" => strtoupper(auth()->user()->name),
-
-                                    ]);
-                                } catch (\Exception $e) {
-
-                                    // $action()->cancel();
-
-                                    Notification::make("error")
-                                        ->title("Erreur")
-                                        ->body("Erreur lors de la création du contrat:" . $e->getMessage())
-                                        ->warning()
-                                        ->color(Color::Red)
-                                        ->send();
-                                }
-
-
-                                Notification::make("created")
-                                    ->title("Enregistré(e)")
-                                    ->body("La demande a été enregisttrée")
-                                    ->color(Color::Green)
-                                    ->send();
+                                Self::customCreateLogic($record);
 
                                 return redirect(route("filament.admin.resources.boites-postales.index"));
                             }),
@@ -611,5 +514,59 @@ class BoitesPostaleResource extends Resource
             }
         
         return $result;
+    }
+
+    public static function customCreateLogic($record)
+    {
+        $sequence = DB::getSequence();
+
+        $contratSequence = $sequence->nextvalue('BOITE.CONTRAT_SEQ');
+
+        $duree = self::montantCheckForDuree($record);
+
+        try {
+
+            if(strlen($record->designation_bp) >= 5)
+            {
+                $dsesignBP = substr($record->designation_bp, 0, 2);
+            }
+            else $dsesignBP = str_pad($record->designation_bp, 2, '0', STR_PAD_RIGHT);
+
+
+            ;
+            Contrat::firstOrCreate([
+
+                "ref_contrat" => strval(str_pad($record->code_bureau, 3, '0', STR_PAD_RIGHT) . $dsesignBP. str_pad($record->id_abonne, 4, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('y') . str_pad($contratSequence, 4, '0', STR_PAD_LEFT)),
+                "code_etat_contrat" => 3,
+                "contrat_source" => null,
+                "date_debut_contrat" => $record->date_reglement,
+                "date_derniere_facture" => $record->date_reglement,
+                "date_fin_contrat" => (Carbon::parse($record->date_reglement))->addYears($duree),
+                "date_resiliation" => null,
+                "date_resiliation_off" => null,
+                "id_abonne" => $record->id_abonne,
+                "id_bp" => $record->id_bp,
+                "id_operation" => $record->id_operation,
+                "id_service" => 1,
+                "periodicite_facturation" => $record->periodicite_facturation,
+                "utilisateur" => strtoupper(auth()->user()->name),
+
+            ]);
+        } catch (\Exception $e) {
+
+
+            Notification::make("error")
+                ->title("Erreur")
+                ->body("Erreur lors de la création du contrat:" . $e->getMessage())
+                ->warning()
+                ->color(Color::Red)
+                ->send();
+        }
+
+        Notification::make("created")
+            ->title("Enregistré(e)")
+            ->body("La demande a été enregisttrée")
+            ->color(Color::Green)
+            ->send();
     }
 }

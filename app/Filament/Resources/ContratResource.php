@@ -227,13 +227,18 @@ class ContratResource extends Resource
                                     ->label('Fin du contrat')
                                     ->format('d/m/Y'),
 
-                                    TextInput::make('id_operation')
-                                    ->label('Id de l\'opération')
-                                    ->columnSpanFull(),
+                                  Grid::make(2)
+                                    ->schema([
+                                        TextInput::make('id_operation')
+                                        ->label('Id de l\'opération'),
+    
+                                    TextInput::make('montant_reglement')
+                                        ->label('Montant payé'),
+                                    ]),
 
-                                TextInput::make('montant_reglement')
-                                    ->label('Montant payé')
-                                    ->columnSpanFull(),
+                                    TextInput::make('ref_contrat')
+                                    ->label('Réference du contrat')
+                                    ->placeholder('-'),
                             ]),
 
 
@@ -608,6 +613,8 @@ class ContratResource extends Resource
                         Action::make('valider')
                             ->icon('heroicon-o-check-circle')
                             ->requiresConfirmation()
+                            ->modalHeading('Valider la demande?')
+                            ->modalDescription("En faisant celà, vous validez la demande d'abonnement à la boîte postale vous invitez le demandeur par SMS à venir signer son contrat.")
                             ->color(Color::Green)
                             ->action(function ($record) {
 
@@ -617,6 +624,8 @@ class ContratResource extends Resource
 
                         Action::make('rejeter')
                             ->requiresConfirmation()
+                            ->modalHeading('Rejeter la demande?')
+                            ->modalDescription("En faisant celà, vous rejetez la demande d'abonnement à cette boîte postale. Le demandeur sera informé par SMS du rejet de sa demande.")
                             ->icon('heroicon-o-x-circle')
                             ->color(Color::Red)
                             ->action(function ($record) {
