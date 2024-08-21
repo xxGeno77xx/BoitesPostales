@@ -84,7 +84,8 @@ class ListContrats extends ListRecords
                 boite.abonne.code_type_piece,
                 boite.operation.code_type_op,
                 boite.operation.validite_annee,
-                boite.categorie_professionnelle.soumis_tva
+                boite.categorie_professionnelle.soumis_tva,
+                boite.abonne.cfe_document_name
                  
            
                 

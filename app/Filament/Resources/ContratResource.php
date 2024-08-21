@@ -55,14 +55,16 @@ class ContratResource extends Resource
     {
         return $form
             ->schema([
-                Fieldset::make("Piece d'identité")
+                Fieldset::make("Pieces justificatives")
                     ->columnSpanFull()
                     ->schema([
 
-                        IdentityViewer::make(""),
+                        IdentityViewer::make("Id")
+                            ->label("Pièce d'identité"),
 
                         CfeField::make("cfe")
-                            ->label("Carte CFE"),
+                            ->label("Carte CFE")
+                            ->visible(fn($record) => $record->cfe_document_name == null? false : true), // $recod->cfe_document_name == null? false : true
 
                     ]),
 

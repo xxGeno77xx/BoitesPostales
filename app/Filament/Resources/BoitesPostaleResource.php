@@ -58,11 +58,11 @@ class BoitesPostaleResource extends Resource
                     ->columnSpanFull()
                     ->schema([
 
-                        IdentityViewer::make("Identité")
-                            ->label("Pièce d'identité"),
+                        IdentityViewer::make("Pièce d'identité"),
 
                         CfeField::make("cfe")
-                        ->label("Carte CFE"),
+                            ->label("Carte CFE")
+                            ->visible(fn($record) => $record->cfe_document_name == null? false : true),
 
 
                     ])
