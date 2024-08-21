@@ -347,7 +347,7 @@ class ContratResource extends Resource
                                         // $set("an_bonus", $result["an_bonus"]);
 
                                         $response = Http::withHeaders([
-                                            'Authorization' => 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhdGQiLCJyb2xlcyI6WyJVU0VSX0JPSVRFIl0sImlzcyI6InNwdCJ9.cJyIDPKFaJFAO9_Oz3f5EfURIa4KLex0HJ1DV7okSxw',
+                                            'Authorization' => env('API_KEY', null),
                                             
                                         ])->get('http://192.168.60.43:8080/boitepostale-api/boitemanagement/v1/tarifAbonnement', [
                                             
