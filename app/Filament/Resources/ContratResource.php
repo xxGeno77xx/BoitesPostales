@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\BureauPoste;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Section;
 use Schema;
@@ -232,20 +233,54 @@ class ContratResource extends Resource
 
                     ]),
 
+                    Hidden::make("catPro")
+                        ->default(1),
+
                 Section::make("Tarification")
                     ->hiddenOn("view")
                     ->schema([
 
+                        Radio::make('type_op')
+                        ->label("Type de personne")
+                        ->options([
+                            5 => 'Personne physique',
+                            6 => 'Personne morale',
+
+                        ])
+                        ->live()
+                        ->afterStateUpdated(function(Callable $get, Callable $set){
+
+                            if($get("type_op") == 5)
+                            {
+                                $set("catPro", 1) ;// physiqye
+                            }
+                            else $set("catPro", 2); // morale
+
+                       
+                      
+                        })
+                        ->dehydrated(false)
+                        ->inline(),
+
                         Grid::make(2)
                             ->schema([
 
-                                Select::make('categ_pro')
-                                    ->label('Catégorie professionnelle')
-                                    ->searchable()
-                                    ->dehydrated(false)
-                                    ->options(CategoriePro::pluck("libelle_categ_prof", "code_categ_prof"))
-                                    ->columnSpanFull(),
+                                Grid::make(2)
+                                    ->schema([
 
+                                        Select::make('categ_pro')
+                                        ->label('Catégorie professionnelle')
+                                        ->searchable()
+                                        ->dehydrated(false)
+                                        ->options(fn( Callable $get) => CategoriePro::where("code_categorie", $get("catPro"))->pluck("libelle_categ_prof", "code_categ_prof")),
+    
+                                        Select::make('bureau')
+                                        ->label('Bureau de poste')
+                                        ->searchable()
+                                        ->options(BureauPoste::pluck("designation_buro", "code_bureau")),
+    
+                                    ]),
+                              
 
                                 Radio::make('zone')
                                     ->label("Choix de la zone")
@@ -269,37 +304,58 @@ class ContratResource extends Resource
                                     ->dehydrated(false)
                                     ->afterStateUpdated(function ($set, $get, $record) {
 
-                                        $codeSousGroupe = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->code_sous_gpe;
+                                        // $codeSousGroupe = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->code_sous_gpe;
 
-                                        $idService = 1; // figé
+                                        // $idService = 1; // figé
                             
-                                        $idRegroup = $get("zone");
+                                        // $idRegroup = $get("zone");
 
-                                        $idParamFacturation = 4;  //figé comme dans l'api
+                                        // $idParamFacturation = 4;  //figé comme dans l'api
                             
-                                        $code_bureau = $record->code_bureau;
+                                        $code_bureau = $get("bureau");
 
-                                        $dates = Carbon::parse($record->date_debut_contrat)->format("Y/m/d");
+                                        // $dates = Carbon::parse($record->date_debut_contrat)->format("Y/m/d");
 
-                                        $au = Carbon::parse($record->date_fin_contrat)->format("Y/m/d");
+                                        // $au = Carbon::parse($record->date_fin_contrat)->format("Y/m/d");
 
                                         $duree = $get("duree_abonnement");
 
-                                        $codeTypeOperation = 1;// DB::table("boite.operation")->whereRaw("id_operation = ?", [$record->id_operation])->first()->code_type_op;
+                                        $codeTypeOperation = $get("type_op");  // DB::table("boite.operation")->whereRaw("id_operation = ?", [$record->id_operation])->first()->code_type_op;
                             
-                                        $soumisTva = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->soumis_tva;
+                                        // $soumisTva = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->soumis_tva;
 
                                         // $result = StoredProcedures::getTarifs($codeSousGroupe , $idService,$idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, $codeTypeOperation, $soumisTva);
                             
-                                        $result = StoredProcedures::getTarifs($codeSousGroupe, $idService, $idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, 5, $soumisTva);
+                                       // $result = StoredProcedures::getTarifs($codeSousGroupe, $idService, $idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, 5, $soumisTva);
 
 
-                                        $set("redevancebp", $result["redevance_bp"]);
+                                        // $set("redevancebp", $result["redevance_bp"]);
+                                        // $set("penalite", $result["penalite"]);
+                                        // $set("taxe_fixe", $result["taxe_fixe"]);
+                                        // $set("tva", $result["tva"]);
+                                        // $set("redevance", $result["redevance"]);
+                                        // $set("an_bonus", $result["an_bonus"]);
+
+                                        $response = Http::withHeaders([
+                                            'Authorization' => 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhdGQiLCJyb2xlcyI6WyJVU0VSX0JPSVRFIl0sImlzcyI6InNwdCJ9.cJyIDPKFaJFAO9_Oz3f5EfURIa4KLex0HJ1DV7okSxw',
+                                            
+                                        ])->get('http://192.168.60.43:8080/boitepostale-api/boitemanagement/v1/tarifAbonnement', [
+                                            
+                                            'codeBureau' => intval($code_bureau),
+                                            'duree' => intval($duree),
+                                            'codeTypeOp' => intval($codeTypeOperation),
+                                            'codeCategProf' => intval($get("categ_pro")),
+                                        ]);
+
+                                        $result = $response->collect()["content"];
+
+                                        $set("redevancebp", $result["redevanceBp"]);
                                         $set("penalite", $result["penalite"]);
-                                        $set("taxe_fixe", $result["taxe_fixe"]);
+                                        $set("taxe_fixe", $result["taxeFixe"]);
                                         $set("tva", $result["tva"]);
                                         $set("redevance", $result["redevance"]);
-                                        $set("an_bonus", $result["an_bonus"]);
+                                        $set("an_bonus", $result["anBonus"]);
+
                                     }),
                             ]),
 
