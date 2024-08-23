@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ContratResource\Pages;
 
+use App\Enums\RolesEnums;
 use App\Models\BoitesPostale;
 use App\Models\BureauPoste;
 use Filament\Actions;
@@ -22,8 +23,19 @@ class ListContrats extends ListRecords
 
     protected function getTableQuery(): ?Builder
     {
-        $loggedUserCodeBureau = auth()->user()->code_bureau;
+        $loggedUser = auth()->user();
 
+        if($loggedUser->hasAnyRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
+        {
+           return $this->dcmQuery();
+        }
+
+        return $this->bureauPosteQuery();
+
+    }
+
+    public function dcmQuery()
+    {
         return BoitesPostale::join('boite.etat_bp', 'boite.etat_bp.code_etat_bp', 'boite.boite_postale.code_etat_bp')
         ->join('boite.operation', 'boite.operation.id_bp', 'boite.boite_postale.id_bp')
         ->join('boite.reglement', 'boite.reglement.id_operation', 'boite.operation.id_operation')
@@ -103,6 +115,11 @@ class ListContrats extends ListRecords
         ->whereNotNull("boite.abonne.document_name")
         ->whereRaw("to_number(to_char(boite.contrat.date_debut_contrat,'yyyymmdd'))  >= 20240101")
         ->orderby("boite.reglement.date_reglement", "desc");
-
     }
+
+     public function bureauPosteQuery()
+     {
+          return $this->dcmQuery()->where("boite.boite_postale.code_bureau", auth()->user()->code_bureau)
+                                    ->where("boite.contrat.code_etat_contrat", 0);
+     }
 }

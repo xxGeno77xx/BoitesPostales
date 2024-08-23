@@ -4,12 +4,12 @@ namespace App\Filament\Resources;
 
 use Carbon\Carbon;
 use App\Models\Etat;
-use Filament\Forms\Components\RichEditor;
 use Filament\Tables;
 use App\Models\Ville;
 use App\Models\Abonne;
 use App\Models\Contrat;
 use Filament\Forms\Form;
+use App\Enums\RolesEnums;
 use App\Models\TypePiece;
 use Filament\Tables\Table;
 use App\Models\BureauPoste;
@@ -36,6 +36,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Placeholder;
 use App\Filament\Resources\BoitesPostaleResource\Pages;
@@ -571,5 +572,16 @@ class BoitesPostaleResource extends Resource
             ->body("La demande a été enregisttrée")
             ->color(Color::Green)
             ->send();
+    }
+
+
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        if($user->hasAnyRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value])){
+            return true;
+        }
+        return false;
     }
 }

@@ -135,7 +135,7 @@ class OracleLogin extends Login
         if (!$userToLogIn) {
 
             $createUser = User::create([
-                'email' => Str::random(100).'@laposte.tg',
+                'email' => $data['username'].'@laposte.tg',
                 'password' => Hash::make('L@poste+2024'),
                 'name' => $data['username'],
                 'username' => $data['username'],

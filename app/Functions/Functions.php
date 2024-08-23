@@ -41,7 +41,7 @@ class Functions
 
         $bureau = BureauPoste::find($record->code_bureau);
 
-        $telephone = 22890110599;    // TODO:  $record->telephone;
+        $telephone = 22891568182;    // TODO:  $record->telephone;
 
         $message = 'NOUS AVONS LE PLAISIR DE VOUS INFORMER QUE LA BOITE POSTALE '.$bureau->code_postal_buro.' BP '.$record->designation_bp.' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE '.$bureau->designation_buro .' POUR SIGNER VOTRE CONTRAT.';
 

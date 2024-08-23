@@ -2,10 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\BureauPoste;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Section;
 use Schema;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -14,8 +10,10 @@ use App\Models\Ville;
 use App\Models\Abonne;
 use App\Models\Contrat;
 use Filament\Forms\Form;
+use App\Enums\RolesEnums;
 use App\Models\TypePiece;
 use Filament\Tables\Table;
+use App\Models\BureauPoste;
 use App\Functions\Functions;
 use App\Models\CategoriePro;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -27,9 +25,12 @@ use Filament\Forms\Components\Grid;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\Filter;
 use App\Procedures\StoredProcedures;
+use Filament\Forms\Components\Radio;
 use Illuminate\Support\Facades\Http;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\Blade;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Fieldset;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
@@ -571,6 +572,7 @@ class ContratResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
+                    ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
                     ->using(function (Model $record, array $data): Model {
 
                         $abonne = Abonne::find($record->id_abonne);
@@ -616,6 +618,7 @@ class ContratResource extends Resource
                             ->modalHeading('Valider la demande?')
                             ->modalDescription("En faisant celà, vous validez la demande d'abonnement à la boîte postale vous invitez le demandeur par SMS à venir signer son contrat.")
                             ->color(Color::Green)
+                            ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
                             ->action(function ($record) {
 
                                 Functions::sendValidation($record);
@@ -628,6 +631,7 @@ class ContratResource extends Resource
                             ->modalDescription("En faisant celà, vous rejetez la demande d'abonnement à cette boîte postale. Le demandeur sera informé par SMS du rejet de sa demande.")
                             ->icon('heroicon-o-x-circle')
                             ->color(Color::Red)
+                            ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
                             ->action(function ($record) {
 
                                 Functions::sendRejection($record);
@@ -641,6 +645,7 @@ class ContratResource extends Resource
                             ->modalDescription("En faisant celà, vous informez l'abonné qu'il doit passer en agence compléter ou corriger certaines informations relatives à sa demande d'abonnement.")
                             ->icon('heroicon-o-envelope')
                             ->color(Color::Yellow)
+                            ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
                             ->action(function ($record) {
 
                                 Functions::sendRecallSms($record);
@@ -711,4 +716,7 @@ class ContratResource extends Resource
             // 'edit' => Pages\EditContrat::route('/{record}/edit'),
         ];
     }
+
+
+
 }

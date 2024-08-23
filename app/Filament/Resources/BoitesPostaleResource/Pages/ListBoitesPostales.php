@@ -100,9 +100,16 @@ LEFT JOIN boite.contrat c
 ON o.id_operation = c.id_operation
 WHERE c.id_operation IS NULL)")
         ;
+    }
 
 
+    public function dcmQuery()
+    {
 
+    }
 
+    public function bureauPosteQuery()
+    {
+            
     }
 }
