@@ -83,7 +83,8 @@ class ListBoitesPostales extends ListRecords
                 boite.abonne.id_abonne,
                 boite.abonne.cfe_document_name,
                 boite.operation.code_type_op,
-                boite.categorie_professionnelle.code_sous_gpe
+                boite.categorie_professionnelle.code_sous_gpe,
+                boite.sous_groupe.libelle_sous_gpe
                  
               
 

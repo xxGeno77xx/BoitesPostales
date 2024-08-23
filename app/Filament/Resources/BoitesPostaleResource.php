@@ -304,8 +304,11 @@ class BoitesPostaleResource extends Resource
                     ->date('d/m/y')
                     ->placeholder('-'),
 
-                // TextColumn::make('montant_reglement')
-                //     ->label('Montant'),
+                TextColumn::make('montant_reglement')
+                    ->label('Montant'),
+
+                    TextColumn::make('libelle_sous_gpe')
+                    ->label('Sous-groupe'),
 
 
 

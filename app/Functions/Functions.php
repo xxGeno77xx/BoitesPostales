@@ -165,9 +165,11 @@ class Functions
 
         $refSms = Str::random(10);
 
-        $telephone = 22890110599;  //        // TODO:  $record->telephone;
+        $telephone = 22891568182;  //        // TODO:  $record->telephone;
 
-        $message = 'VOUS ETES PIRES DE PASSER EN AGENCE CORRIGER VOS INFORMATIONS RELATIVES A VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE. MERCI';
+        $bureau = BureauPoste::where("code_bureau",$record->code_bureau)->first()->designation_buro;
+
+        $message = 'VOUS ETES PIRES DE PASSER A L\'AGENCE '.$bureau.' CORRIGER VOS INFORMATIONS RELATIVES A VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE. MERCI';
 
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
