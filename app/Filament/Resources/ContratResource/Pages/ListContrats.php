@@ -99,11 +99,6 @@ class ListContrats extends ListRecords
                 boite.categorie_professionnelle.soumis_tva,
                 boite.abonne.cfe_document_name
                  
-           
-                
-
-                 
-          
                 '
         )
 

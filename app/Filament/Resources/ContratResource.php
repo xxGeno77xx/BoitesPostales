@@ -717,6 +717,7 @@ class ContratResource extends Resource
         ];
     }
 
+    
 
 
 }

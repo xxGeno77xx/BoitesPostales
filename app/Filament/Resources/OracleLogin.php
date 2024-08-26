@@ -77,29 +77,26 @@ class OracleLogin extends Login
  
         $oracleuser = DbaUser::where("username", strtoupper($data["username"]))->first();
 
-
+        
+ 
         try {
 
             $this->rateLimit(5); 
+ 
+            
+                $agent = DB::table("spt.caissier")->whereRaw("rtrim(nom_caissier) = rtrim(?)", [ $oracleuser->username])->first();
+
+                if(! $agent)
+                {
+                   $this->noNumeroCaisse();
+                }
+   
 
             try {
 
-                $numeroCaisse = DB::table("caissier")->whereRaw("rtrim(nom_caissier) = rtrim(?)", [ $oracleuser->name])->first();
-                 
-
+               
                 $conn = oci_connect(strtoupper($data['username']), $data['password'],  env("CONNECTION"));
 
-                if($numeroCaisse != null)
-                {
-                    SessionCaisse::create([
-                        "numero_caisse" =>  $numeroCaisse->numero_caisse ,
-                        "numero_caissier" =>  $numeroCaisse->numero_caissier,
-                        "date_session" => today() ,
-                        "utilisateur" => strtoupper($data['username']),
-                        "numero_session" =>  SessionCaisse::orderBy("numero_session", 'desc')->first()->numero_session ,
-                    ]);
-
-                }
               
             } catch (\ErrorException $e) {
 
@@ -108,10 +105,14 @@ class OracleLogin extends Login
                         throw ValidationException::withMessages(['username' => 'Votre compte est bloqué, veuiller contactez votre administrateur.']);
                     }
                 }
+
+         
                 
                 $this->throwFailureValidationException();
                 
             }
+
+           
 
         } catch (TooManyRequestsException $exception) {
             Notification::make()
@@ -139,6 +140,7 @@ class OracleLogin extends Login
                 'password' => Hash::make('L@poste+2024'),
                 'name' => $data['username'],
                 'username' => $data['username'],
+                "code_bureau" => $agent->code_agence
             ]);
 
             $newUser = User::where("name", $data['username'])->first();
@@ -270,6 +272,13 @@ class OracleLogin extends Login
     {
         throw ValidationException::withMessages([
             'data.username' => __('Vous n\'avez pas acces à cette application'),
+        ]);
+    }
+
+    protected function noNumeroCaisse(): never
+    {
+        throw ValidationException::withMessages([
+            'data.username' => __('Pas de bureau pour cet utilisateur'),
         ]);
     }
 }
