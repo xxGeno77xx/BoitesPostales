@@ -501,6 +501,9 @@ class ContratResource extends Resource
                 //     ->color(Color::Red)
                 //     ->date('d/m/Y'),
 
+                TextColumn::make('libelle_sous_gpe')
+                ->label('Sous-groupe'),
+
                 TextColumn::make('code_bureau')
                     ->label('Bureau de poste')
                     ->formatStateUsing(function ($state) {
@@ -514,11 +517,11 @@ class ContratResource extends Resource
                     })
                     ->placeholder('-'),
 
-                // TextColumn::make('designation_bp')
-                //     ->label('Désignation boîte')
-                //     ->badge()
-                //     ->color(Color::Blue)
-                //     ->placeholder('-'),
+                TextColumn::make('duree')
+                    ->label('Durée')
+                    ->badge()
+                    ->color(Color::Blue)
+                    ->placeholder('-'),
 
                 // TextColumn::make('id_operation')
                 // ->label('operation')

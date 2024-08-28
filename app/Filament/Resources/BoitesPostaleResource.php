@@ -207,7 +207,7 @@ class BoitesPostaleResource extends Resource
                             ->schema([
 
                                 TextInput::make('id_operation')
-                                    ->label('id_operation')
+                                    ->label('Opération N°')
                                     ->placeholder('-'),
 
                                 TextInput::make('id_reglement')

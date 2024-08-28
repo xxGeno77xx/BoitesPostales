@@ -45,6 +45,7 @@ class ListContrats extends ListRecords
         ->leftjoin('boite.ville', 'boite.ville.code_ville','boite.abonne.code_ville')
         ->join("boite.contrat", "boite.contrat.id_operation", "reglement.id_operation")
         ->join("boite.etat_contrat","boite.etat_contrat.code_etat_contrat", "boite.contrat.code_etat_contrat")
+        ->leftjoin("boite.sous_groupe", "boite.sous_groupe.code_sous_gpe", "boite.categorie_professionnelle.code_sous_gpe")
         ->selectRaw(
             
                ' 
@@ -97,7 +98,10 @@ class ListContrats extends ListRecords
                 boite.operation.code_type_op,
                 boite.operation.validite_annee,
                 boite.categorie_professionnelle.soumis_tva,
-                boite.abonne.cfe_document_name
+                boite.abonne.cfe_document_name,
+                boite.categorie_professionnelle.code_sous_gpe,
+                boite.sous_groupe.libelle_sous_gpe,
+                FLOOR(MONTHS_BETWEEN( date_fin_contrat, date_debut_contrat) / 12) duree
                  
                 '
         )

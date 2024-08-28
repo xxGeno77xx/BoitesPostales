@@ -58,6 +58,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 \Phpsa\FilamentAuthentication\FilamentAuthentication::make(),
-            ]);
+            ])
+            ->sidebarCollapsibleOnDesktop();;
     }
 }
