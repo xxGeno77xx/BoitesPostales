@@ -239,12 +239,6 @@ class BoitesPostaleResource extends Resource
                                     ->disabled()
                                     ->dehydrated(false),
 
-                                TextInput::make('id_bp')
-                                    ->label('ID de la boîte postale')
-                                    ->placeholder('-')
-                                    ->disabled()
-                                    ->dehydrated(false),
-
 
                             ]),
                     ]),
@@ -257,15 +251,15 @@ class BoitesPostaleResource extends Resource
             ->columns([
 
 
-                TextColumn::make("id_bp")
-                    ->label("ID de la boîte")
-                    ->placeholder("-")
-                    ->searchable(query: function (Builder $query, string $search): Builder {
+                // TextColumn::make("id_bp")
+                //     ->label("ID de la boîte")
+                //     ->placeholder("-")
+                //     ->searchable(query: function (Builder $query, string $search): Builder {
 
-                        return $query->selectRaw('boite.boite_postale.id_bp')
-                            ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
+                //         return $query->selectRaw('boite.boite_postale.id_bp')
+                //             ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
 
-                    }),
+                //     }),
 
                 // TextColumn::make('id_reglement')
                 //     ->label('ID règlement')
@@ -310,8 +304,6 @@ class BoitesPostaleResource extends Resource
 
                     TextColumn::make('libelle_sous_gpe')
                     ->label('Sous-groupe'),
-
-
 
 
                 TextColumn::make('code_bureau')
@@ -539,8 +531,10 @@ class BoitesPostaleResource extends Resource
 
             ;
             Contrat::firstOrCreate([
+                                               
 
-                "ref_contrat" => strval(str_pad($record->code_bureau, 3, '0', STR_PAD_RIGHT) . $dsesignBP. str_pad($record->id_abonne, 4, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('y') . str_pad($contratSequence, 4, '0', STR_PAD_LEFT)),
+                
+                "ref_contrat" =>   $record->code_bureau . str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT) . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
                 "code_etat_contrat" => 3,
                 "contrat_source" => null,
                 "date_debut_contrat" => $record->date_reglement,
@@ -559,12 +553,12 @@ class BoitesPostaleResource extends Resource
         } catch (\Exception $e) {
 
 
-            Notification::make("error")
-                ->title("Erreur")
-                ->body("Erreur lors de la création du contrat:" . $e->getMessage())
-                ->warning()
-                ->color(Color::Red)
-                ->send();
+            // Notification::make("error")
+            //     ->title("Erreur")
+            //     ->body("Erreur lors de la création du contrat:" . $e->getMessage())
+            //     ->warning()
+            //     ->color(Color::Red)
+            //     ->send();
         }
 
         Notification::make("created")

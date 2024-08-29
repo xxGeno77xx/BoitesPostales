@@ -231,7 +231,7 @@ class ContratResource extends Resource
                                   Grid::make(2)
                                     ->schema([
                                         TextInput::make('id_operation')
-                                        ->label('Id de l\'opération'),
+                                        ->label('Opération N°'),
     
                                     TextInput::make('montant_reglement')
                                         ->label('Montant payé'),
