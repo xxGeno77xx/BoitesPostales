@@ -131,15 +131,15 @@ class OracleLogin extends Login
         }
 
 
-        $userToLogIn = User::where('username', $data['username'])->first();
+        $userToLogIn = User::where('username', strtoupper($data['username']))->first();
         
         if (!$userToLogIn) {
 
-            $createUser = User::create([
+            $createUser = User::firstOrCreate([
                 'email' => $data['username'].'@laposte.tg',
                 'password' => Hash::make('L@poste+2024'),
                 'name' => $data['username'],
-                'username' => $data['username'],
+                'username' => strtoupper($data['username']),
                 "code_bureau" => $agent->code_agence
             ]);
 
