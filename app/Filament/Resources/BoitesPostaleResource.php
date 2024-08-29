@@ -522,15 +522,28 @@ class BoitesPostaleResource extends Resource
 
         try {
 
-            if(strlen($record->designation_bp) >= 5)
-            {
-                $dsesignBP = substr($record->designation_bp, 0, 2);
-            }
-            else $dsesignBP = str_pad($record->designation_bp, 2, '0', STR_PAD_RIGHT);
+            $dsesignBP = $record->designation_bp;
 
+            $strippedBP = str_pad($dsesignBP, 5, '0', STR_PAD_RIGHT);
+
+            
+            if (strlen( $strippedBP) > 5) {
+                $strippedBP = substr($strippedBP, 0, 5);
+            }
+
+
+         $idAbonne = $record->id_abonne;
+
+         $strippedIdAbonne = str_pad($idAbonne, 6, '0', STR_PAD_LEFT);
+
+         if (strlen( $strippedIdAbonne) > 6) {
+            $strippedIdAbonne = substr($strippedIdAbonne, 0, 6);
+        }
+
+          
             Contrat::firstOrCreate([
                                                
-                "ref_contrat" => $record->code_bureau . str_pad($record->designation_bp, 5, '0', STR_PAD_RIGHT) . str_pad($record->id_abonne, 6, '0', STR_PAD_LEFT) . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
+                "ref_contrat" => $record->code_bureau . $strippedBP . $strippedIdAbonne . (Carbon::parse($record->date_reglement))->format('Y') . str_pad($contratSequence, 6, '0', STR_PAD_LEFT),
                 "code_etat_contrat" => 3,
                 "contrat_source" => null,
                 "date_debut_contrat" => $record->date_reglement,
@@ -549,12 +562,12 @@ class BoitesPostaleResource extends Resource
         } catch (\Exception $e) {
 
 
-            // Notification::make("error")
-            //     ->title("Erreur")
-            //     ->body("Erreur lors de la création du contrat:" . $e->getMessage())
-            //     ->warning()
-            //     ->color(Color::Red)
-            //     ->send();
+            Notification::make("error")
+                ->title("Erreur")
+                ->body("Erreur lors de la création du contrat:" . $e->getMessage())
+                ->warning()
+                ->color(Color::Red)
+                ->send();
         }
 
         Notification::make("created")
