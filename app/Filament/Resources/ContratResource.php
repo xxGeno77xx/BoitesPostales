@@ -720,6 +720,15 @@ class ContratResource extends Resource
         ];
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        if($user->hasAnyRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value])){
+            return true;
+        }
+        return false;
+    }
     
 
 
