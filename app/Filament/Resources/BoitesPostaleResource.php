@@ -562,12 +562,12 @@ class BoitesPostaleResource extends Resource
         } catch (\Exception $e) {
 
 
-            Notification::make("error")
-                ->title("Erreur")
-                ->body("Erreur lors de la création du contrat:" . $e->getMessage())
-                ->warning()
-                ->color(Color::Red)
-                ->send();
+            // Notification::make("error")
+            //     ->title("Erreur")
+            //     ->body("Erreur lors de la création du contrat:" . $e->getMessage())
+            //     ->warning()
+            //     ->color(Color::Red)
+            //     ->send();
         }
 
         Notification::make("created")
