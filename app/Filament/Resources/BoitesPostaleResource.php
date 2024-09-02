@@ -248,6 +248,7 @@ class BoitesPostaleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->persistFiltersInSession()
             ->columns([
 
 
@@ -397,12 +398,7 @@ class BoitesPostaleResource extends Resource
                             "premier_resp" => $data["premier_resp"],
                             "datenais" => $data["datenais"],
                             "num_cpte" => $data["num_cpte"],
-
-                            ////////////////////////////////////////////
                             "code_categ_prof" => $data["code_categ_prof"],
-
-                            /////////////////////////
-            
                             "code_type_piece" => $data["code_type_piece"],
                             "code_ville" => $data["code_ville"],
                             "banque" => $data["banque"],

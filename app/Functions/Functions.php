@@ -41,16 +41,13 @@ class Functions
 
         $bureau = BureauPoste::find($record->code_bureau);
 
-        $telephone = 22891568182;    // TODO:  $record->telephone;
+        $telephone = "228".$record->telephone;
 
         $message = 'NOUS AVONS LE PLAISIR DE VOUS INFORMER QUE LA BOITE POSTALE '.$bureau->code_postal_buro.' BP '.$record->designation_bp.' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE '.$bureau->designation_buro .' POUR SIGNER VOTRE CONTRAT.';
 
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
         $origine = '0';
-        
-
-        
 
         if (! is_null($bureau)) {
 
@@ -76,48 +73,45 @@ class Functions
      * @function   //updates record and sets parameters for sms
      */
 
-    public static function setRejectionParameters($record)
-    {
+    // public static function setRejectionParameters($record)
+    // {
+    //     $contrat = Contrat::find($record->ref_contrat);
 
-   
+    //     $record->update([
+    //           "code_etat_bp" => self::REJECTED, //atribuée
+    //     ]);
 
-        $contrat = Contrat::find($record->ref_contrat);
+    //      $contrat->update([
+    //          "code_etat_contrat" => 2 // bloqué
+    //     ]);
 
-        $record->update([
-              "code_etat_bp" => self::REJECTED, //atribuée
-        ]);
+    //     $refSms = Str::random(10);
 
-         $contrat->update([
-             "code_etat_contrat" => 2 // bloqué
-        ]);
+    //     $telephone = 22891568182;  //        // TODO:  $record->telephone;
 
-        $refSms = Str::random(10);
+    //     $message = 'NOUS AVONS LE REGRET DE VOUS INFORMER QUE VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE A ETE REJETEE.';
 
-        $telephone = 22890110599;  //        // TODO:  $record->telephone;
+    //     $dateSms = Carbon::parse(today())->format('d/m/y');
 
-        $message = 'NOUS AVONS LE REGRET DE VOUS INFORMER QUE VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE A ETE REJETEE.';
+    //     $bureau = BureauPoste::find($record->code_bureau);
 
-        $dateSms = Carbon::parse(today())->format('d/m/y');
+    //     if (! is_null($bureau)) {
+    //         $origine = $bureau->libelle_poste;
+    //     } else {
+    //         $origine = $record->code_bureau;
+    //     }
 
-        $bureau = BureauPoste::find($record->code_bureau);
+    //     return [
+    //         'refSms' => $refSms,
+    //         'telephone' => $telephone,
+    //         'message' => $message,
+    //         'dateSms' => $dateSms,
+    //         'origine' => $origine,
+    //         'bureau' => $bureau,
 
-        if (! is_null($bureau)) {
-            $origine = $bureau->libelle_poste;
-        } else {
-            $origine = $record->code_bureau;
-        }
+    //     ];
 
-        return [
-            'refSms' => $refSms,
-            'telephone' => $telephone,
-            'message' => $message,
-            'dateSms' => $dateSms,
-            'origine' => $origine,
-            'bureau' => $bureau,
-
-        ];
-
-    }
+    // }
 
     /** 
      * @function  // sends validation sms via stored procedure
@@ -133,6 +127,8 @@ class Functions
             ->color(Color::Green)
             ->send();
 
+            Atd::sendInfosBackToFront($record);
+
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
 
@@ -141,19 +137,19 @@ class Functions
      * @function sends rejection sms via stored procedure
      */
 
-    public static function sendRejection($record)
-    {
+    // public static function sendRejection($record)
+    // {
         
 
-        $data = self::setRejectionParameters($record);
+    //     $data = self::setRejectionParameters($record);
 
-        Notification::make('valide')
-            ->body('Boîte postale rejetée')
-            ->color(Color::Red)
-            ->send();
+    //     Notification::make('valide')
+    //         ->body('Boîte postale rejetée')
+    //         ->color(Color::Red)
+    //         ->send();
 
-        return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
-    }
+    //     return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
+    // }
 
 
 
@@ -161,15 +157,17 @@ class Functions
     public static function setRecalParam($record)
     {
 
-   
-
         $refSms = Str::random(10);
 
-        $telephone = 22891568182;  //        // TODO:  $record->telephone;
+        $telephone = "228".$record->telephone;
 
         $bureau = BureauPoste::where("code_bureau",$record->code_bureau)->first()->designation_buro;
 
-        $message = 'VOUS ETES PIRES DE PASSER A L\'AGENCE '.$bureau.' CORRIGER VOS INFORMATIONS RELATIVES A VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE. MERCI';
+        //LOME TOKOIN
+        // $bureau = BureauPoste::where("code_bureau", 680)->first()->designation_buro;
+
+        $message = 'VOUS ETES PRIES DE PASSER A L\'AGENCE '.$bureau.' CORRIGER VOS INFORMATIONS RELATIVES A VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE. MERCI';
+
 
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
@@ -181,6 +179,7 @@ class Functions
             $origine = $record->code_bureau;
         }
 
+        
         return [
             'refSms' => $refSms,
             'telephone' => $telephone,
@@ -206,6 +205,8 @@ class Functions
             ->body('SMS envoyé!')
             ->color(Color::Blue)
             ->send();
+
+        Atd::sendInfosBackToFront($record);
 
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }

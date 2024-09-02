@@ -158,10 +158,10 @@ class ContratResource extends Resource
                                     ->displayFormat('d/m/Y')
                                     ->placeholder('-'),
 
-                                TextInput::make('num_cpte')
-                                    ->label('Numéro de compte')
-                                    ->placeholder('-')
-                                    ->numeric(),
+                                // TextInput::make('num_cpte')
+                                //     ->label('Numéro de compte')
+                                //     ->placeholder('-')
+                                //     ->numeric(),
 
                                 Select::make('code_categ_prof')
                                     ->label('Catégorie professionnelle')
@@ -173,14 +173,14 @@ class ContratResource extends Resource
                                     ->options(Ville::pluck("libelle_ville", "code_ville"))
                                     ->searchable(),
 
-                                TextInput::make('banque')
-                                    ->label('banque')
-                                    ->placeholder('-'),
+                                // TextInput::make('banque')
+                                //     ->label('banque')
+                                //     ->placeholder('-'),
 
-                                TextInput::make('email2')
-                                    ->label('email2')
-                                    ->email()
-                                    ->placeholder('-'),
+                                // TextInput::make('email2')
+                                //     ->label('email2')
+                                //     ->email()
+                                //     ->placeholder('-'),
 
                                 Select::make('code_type_piece')
                                     ->label('Pièce d\'identité')
@@ -409,6 +409,7 @@ class ContratResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->persistFiltersInSession()
             ->columns([
 
                 TextColumn::make('ref_contrat')
@@ -600,12 +601,11 @@ class ContratResource extends Resource
                             "quartier" => $data["quartier"],
                             "premier_resp" => $data["premier_resp"],
                             "datenais" => $data["datenais"],
-                            "num_cpte" => $data["num_cpte"],
+                            // "num_cpte" => $data["num_cpte"],
                             "code_categ_prof" => $data["code_categ_prof"],
                             "code_type_piece" => $data["code_type_piece"],
                             "code_ville" => $data["code_ville"],
-                            "banque" => $data["banque"],
-                            "email2" => $data["email2"],
+                            // "banque" => $data["banque"],
 
 
                         ]);
@@ -628,24 +628,26 @@ class ContratResource extends Resource
 
                             }),
 
-                        Action::make('rejeter')
-                            ->requiresConfirmation()
-                            ->modalHeading('Rejeter la demande?')
-                            ->modalDescription("En faisant celà, vous rejetez la demande d'abonnement à cette boîte postale. Le demandeur sera informé par SMS du rejet de sa demande.")
-                            ->icon('heroicon-o-x-circle')
-                            ->color(Color::Red)
-                            ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
-                            ->action(function ($record) {
+                        // DG said: no rejects, hence removed
+                        
+                        // Action::make('rejeter')
+                        //     ->requiresConfirmation()
+                        //     ->modalHeading('Rejeter la demande?')
+                        //     ->modalDescription("En faisant celà, vous rejetez la demande d'abonnement à cette boîte postale. Le demandeur sera informé par SMS du rejet de sa demande.")
+                        //     ->icon('heroicon-o-x-circle')
+                        //     ->color(Color::Red)
+                        //     ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
+                        //     ->action(function ($record) {
 
-                                Functions::sendRejection($record);
+                        //         Functions::sendRejection($record);
 
-                            }),
+                        //     }),
 
                         Action::make('notifier')
                             ->label("Notifier l'abonné")
                             ->requiresConfirmation()
                             ->modalHeading('Notifier l\'abonné?')
-                            ->modalDescription("En faisant celà, vous informez l'abonné qu'il doit passer en agence compléter ou corriger certaines informations relatives à sa demande d'abonnement.")
+                            ->modalDescription("En faisant celà, vous informez l'abonné par SMS qu'il doit passer en agence compléter ou corriger certaines informations relatives à sa demande d'abonnement.")
                             ->icon('heroicon-o-envelope')
                             ->color(Color::Yellow)
                             ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
