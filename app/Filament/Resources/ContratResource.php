@@ -36,6 +36,7 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use App\Forms\Components\IdentityViewer;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -65,7 +66,7 @@ class ContratResource extends Resource
 
                         CfeField::make("cfe")
                             ->label("Carte CFE")
-                            ->visible(fn($record) => $record->cfe_document_name == null? false : true), // $recod->cfe_document_name == null? false : true
+                            ->visible(fn($record) => $record->cfe_document_name == null ? false : true), // $recod->cfe_document_name == null? false : true
 
                     ]),
 
@@ -228,16 +229,16 @@ class ContratResource extends Resource
                                     ->label('Fin du contrat')
                                     ->format('d/m/Y'),
 
-                                  Grid::make(2)
+                                Grid::make(2)
                                     ->schema([
                                         TextInput::make('id_operation')
-                                        ->label('Opération N°'),
-    
-                                    TextInput::make('montant_reglement')
-                                        ->label('Montant payé'),
+                                            ->label('Opération N°'),
+
+                                        TextInput::make('montant_reglement')
+                                            ->label('Montant payé'),
                                     ]),
 
-                                    TextInput::make('ref_contrat')
+                                TextInput::make('ref_contrat')
                                     ->label('Réference du contrat')
                                     ->placeholder('-'),
                             ]),
@@ -245,163 +246,172 @@ class ContratResource extends Resource
 
                     ]),
 
-                    Hidden::make("catPro")
-                        ->default(1),
+                Hidden::make("catPro")
+                    ->default(1),
 
                 Section::make("Tarification")
                     ->schema([
 
                         Radio::make('type_op')
-                        ->label("Type de personne")
-                        ->options([
-                            5 => 'Personne physique',
-                            6 => 'Personne morale',
+                            ->label("Type de personne")
+                            ->options([
+                                5 => 'Personne physique',
+                                6 => 'Personne morale',
 
-                        ])
-                        ->live()
-                        ->afterStateUpdated(function(Callable $get, Callable $set){
+                            ])
+                            ->live()
+                            ->afterStateUpdated(function (callable $get, callable $set) {
 
-                            if($get("type_op") == 5)
-                            {
-                                $set("catPro", 1) ;// physiqye
-                            }
-                            else $set("catPro", 2); // morale
+                                if ($get("type_op") == 5) {
+                                    $set("catPro", 1);// physiqye
+                                } else
+                                    $set("catPro", 2); // morale
+                    
 
-                       
-                      
-                        })
-                        ->dehydrated(false)
-                        ->inline(),
+
+                            })
+                            ->dehydrated(false)
+                            ->inline(),
 
                         Grid::make(2)
                             ->schema([
 
-                                Grid::make(2)
-                                    ->schema([
+                                    Grid::make(2)
+                                        ->schema([
 
-                                        Select::make('categ_pro')
-                                        ->label('Catégorie professionnelle')
-                                        ->searchable()
+                                                Select::make('categ_pro')
+                                                    ->label('Catégorie professionnelle')
+                                                    ->searchable()
+                                                    ->dehydrated(false)
+                                                    ->options(fn(callable $get) => CategoriePro::where("code_categorie", $get("catPro"))->pluck("libelle_categ_prof", "code_categ_prof")),
+
+                                                Select::make('bureau')
+                                                    ->label('Bureau de poste')
+                                                    ->searchable()
+                                                    ->options(BureauPoste::pluck("designation_buro", "code_bureau")),
+
+                                            ]),
+
+
+                                    Radio::make('zone')
+                                        ->label("Choix de la zone")
+                                        ->options([
+                                                1 => 'Lomé',
+                                                2 => 'Intérieur',
+
+                                            ])
                                         ->dehydrated(false)
-                                        ->options(fn( Callable $get) => CategoriePro::where("code_categorie", $get("catPro"))->pluck("libelle_categ_prof", "code_categ_prof")),
-    
-                                        Select::make('bureau')
-                                        ->label('Bureau de poste')
-                                        ->searchable()
-                                        ->options(BureauPoste::pluck("designation_buro", "code_bureau")),
-    
-                                    ]),
-                              
+                                        ->inline(),
 
-                                Radio::make('zone')
-                                    ->label("Choix de la zone")
-                                    ->options([
-                                        1 => 'Lomé',
-                                        2 => 'Intérieur',
+                                    Radio::make('duree_abonnement')
+                                        ->label("Durée")
+                                        ->options([
+                                                2 => '2 ans',
+                                                5 => '5 ans',
 
-                                    ])
-                                    ->dehydrated(false)
-                                    ->inline(),
+                                            ])
+                                        ->inline()
+                                        ->live()
+                                        ->dehydrated(false)
+                                        ->afterStateUpdated(function ($set, $get, $record) {
 
-                                Radio::make('duree_abonnement')
-                                    ->label("Durée")
-                                    ->options([
-                                        2 => '2 ans',
-                                        5 => '5 ans',
+                                            // $codeSousGroupe = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->code_sous_gpe;
+                                
+                                            // $idService = 1; // figé
+                                
+                                            // $idRegroup = $get("zone");
+                                
+                                            // $idParamFacturation = 4;  //figé comme dans l'api
+                                
+                                            $code_bureau = $get("bureau");
 
-                                    ])
-                                    ->inline()
-                                    ->live()
-                                    ->dehydrated(false)
-                                    ->afterStateUpdated(function ($set, $get, $record) {
+                                            // $dates = Carbon::parse($record->date_debut_contrat)->format("Y/m/d");
+                                
+                                            // $au = Carbon::parse($record->date_fin_contrat)->format("Y/m/d");
+                                
+                                            $duree = $get("duree_abonnement");
 
-                                        // $codeSousGroupe = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->code_sous_gpe;
+                                            $codeTypeOperation = $get("type_op");  // DB::table("boite.operation")->whereRaw("id_operation = ?", [$record->id_operation])->first()->code_type_op;
+                                
+                                            // $soumisTva = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->soumis_tva;
+                                
+                                            // $result = StoredProcedures::getTarifs($codeSousGroupe , $idService,$idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, $codeTypeOperation, $soumisTva);
+                                
+                                            // $result = StoredProcedures::getTarifs($codeSousGroupe, $idService, $idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, 5, $soumisTva);
+                                
 
-                                        // $idService = 1; // figé
-                            
-                                        // $idRegroup = $get("zone");
+                                            // $set("redevancebp", $result["redevance_bp"]);
+                                            // $set("penalite", $result["penalite"]);
+                                            // $set("taxe_fixe", $result["taxe_fixe"]);
+                                            // $set("tva", $result["tva"]);
+                                            // $set("redevance", $result["redevance"]);
+                                            // $set("an_bonus", $result["an_bonus"]);
+                                
+                                            try {
 
-                                        // $idParamFacturation = 4;  //figé comme dans l'api
-                            
-                                        $code_bureau = $get("bureau");
+                                                $response = Http::withHeaders([
+                                                    'Authorization' => config('app.tarifApiToken', null),
 
-                                        // $dates = Carbon::parse($record->date_debut_contrat)->format("Y/m/d");
+                                                ])->get(config("app.tarifAbonnementUrl", " "), [
 
-                                        // $au = Carbon::parse($record->date_fin_contrat)->format("Y/m/d");
+                                                            'codeBureau' => intval($code_bureau),
+                                                            'duree' => intval($duree),
+                                                            'codeTypeOp' => intval($codeTypeOperation),
+                                                            'codeCategProf' => intval($get("categ_pro")),
+                                                        ]);
 
-                                        $duree = $get("duree_abonnement");
+                                                $result = $response->collect()["content"];
 
-                                        $codeTypeOperation = $get("type_op");  // DB::table("boite.operation")->whereRaw("id_operation = ?", [$record->id_operation])->first()->code_type_op;
-                            
-                                        // $soumisTva = DB::table("boite.categorie_professionnelle")->whereRaw("code_categ_prof = ?", $get("categ_pro"))->first()->soumis_tva;
+                                                $set("redevancebp", $result["redevanceBp"]);
+                                                $set("penalite", $result["penalite"]);
+                                                $set("taxe_fixe", $result["taxeFixe"]);
+                                                $set("tva", $result["tva"]);
+                                                $set("redevance", $result["redevance"]);
+                                                $set("an_bonus", $result["anBonus"]);
 
-                                        // $result = StoredProcedures::getTarifs($codeSousGroupe , $idService,$idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, $codeTypeOperation, $soumisTva);
-                            
-                                       // $result = StoredProcedures::getTarifs($codeSousGroupe, $idService, $idRegroup, $idParamFacturation, $dates, $au, $code_bureau, $duree, 5, $soumisTva);
+                                            } catch (\Exception $e) {
+                                                Notification::make('error')
+                                                    ->title("Erreur lors du calcul du tarif")
+                                                    ->body('Veuillez actualiser la page puis réessayer.')
+                                                    ->color(Color::Red)
+                                                    ->send();
+                                            }
 
-
-                                        // $set("redevancebp", $result["redevance_bp"]);
-                                        // $set("penalite", $result["penalite"]);
-                                        // $set("taxe_fixe", $result["taxe_fixe"]);
-                                        // $set("tva", $result["tva"]);
-                                        // $set("redevance", $result["redevance"]);
-                                        // $set("an_bonus", $result["an_bonus"]);
-
-                                        $response = Http::withHeaders([
-                                            'Authorization' => env('API_KEY', null),
-                                            
-                                        ])->get('http://192.168.60.43:8080/boitepostale-api/boitemanagement/v1/tarifAbonnement', [
-                                            
-                                            'codeBureau' => intval($code_bureau),
-                                            'duree' => intval($duree),
-                                            'codeTypeOp' => intval($codeTypeOperation),
-                                            'codeCategProf' => intval($get("categ_pro")),
-                                        ]);
-
-                                        $result = $response->collect()["content"];
-
-                                        $set("redevancebp", $result["redevanceBp"]);
-                                        $set("penalite", $result["penalite"]);
-                                        $set("taxe_fixe", $result["taxeFixe"]);
-                                        $set("tva", $result["tva"]);
-                                        $set("redevance", $result["redevance"]);
-                                        $set("an_bonus", $result["anBonus"]);
-
-                                    }),
-                            ]),
+                                        }),
+                                ]),
 
                         Grid::make(3)
                             ->schema([
-                                TextInput::make("redevancebp")
-                                    ->label("Montant à payer")
-                                    ->dehydrated(false)
-                                    ->disabled(),
+                                    TextInput::make("redevancebp")
+                                        ->label("Montant à payer")
+                                        ->dehydrated(false)
+                                        ->disabled(),
 
-                                TextInput::make("penalite")
-                                    ->label("Pénalité")
-                                    ->dehydrated(false)
-                                    ->disabled(),
+                                    TextInput::make("penalite")
+                                        ->label("Pénalité")
+                                        ->dehydrated(false)
+                                        ->disabled(),
 
-                                TextInput::make("taxe_fixe")
-                                    ->label("Taxe fixe")
-                                    ->dehydrated(false)
-                                    ->disabled(),
+                                    TextInput::make("taxe_fixe")
+                                        ->label("Taxe fixe")
+                                        ->dehydrated(false)
+                                        ->disabled(),
 
-                                TextInput::make("tva")
-                                    ->label("TVA")
-                                    ->dehydrated(false)
-                                    ->disabled(),
+                                    TextInput::make("tva")
+                                        ->label("TVA")
+                                        ->dehydrated(false)
+                                        ->disabled(),
 
-                                TextInput::make("redevance")
-                                    ->label("redevance")
-                                    ->dehydrated(false)
-                                    ->disabled(),
+                                    TextInput::make("redevance")
+                                        ->label("redevance")
+                                        ->dehydrated(false)
+                                        ->disabled(),
 
-                                TextInput::make("an_bonus")
-                                    ->label("Années bonus")
-                                    ->dehydrated(false)
-                                    ->disabled(),
-                            ])
+                                    TextInput::make("an_bonus")
+                                        ->label("Années bonus")
+                                        ->dehydrated(false)
+                                        ->disabled(),
+                                ])
                     ])
             ]);
     }
@@ -409,295 +419,313 @@ class ContratResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->persistFiltersInSession()
+            ->persistFiltersInSession()
             ->columns([
 
-                TextColumn::make('ref_contrat')
-                    ->label('Référence du contrat')
-                    ->placeholder('-'),
+                    TextColumn::make('ref_contrat')
+                        ->label('Référence du contrat')
+                        ->placeholder('-'),
 
-                // TextColumn::make("id_bp")
-                //     ->label("ID de la boîte")
-                //     ->placeholder("-")
-                //     ->searchable(query: function (Builder $query, string $search): Builder {
+                    // TextColumn::make("id_bp")
+                    //     ->label("ID de la boîte")
+                    //     ->placeholder("-")
+                    //     ->searchable(query: function (Builder $query, string $search): Builder {
 
-                //         return $query->selectRaw('boite.boite_postale.id_bp')
-                //             ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
+                    //         return $query->selectRaw('boite.boite_postale.id_bp')
+                    //             ->whereRaw('LOWER(boite.boite_postale.id_bp) LIKE ?', ['%' . strtolower($search) . '%']);
 
-                //     }),
-
-
-                BadgeColumn::make("libelle_etat_contrat")
-                    ->label("Statut du contrat")
-                    ->color(function ($state) {
-                        $return = null;
-                        switch ($state) {
-                            case "CONTRAT EN COURS":
-                                $return = Color::Green;
-                                break;
-
-                            case "CONTRAT RESILIE":
-                                $return = Color::Orange;
-                                break;
-
-                            case "CONTRAT BLOQUE":
-                                $return = Color::Red;
-                                break;
-
-                            case "CONTRAT INITIE":
-                                $return = Color::Blue;
-                                break;
-                        }
-
-                        return $return;
-                    }),
+                    //     }),
 
 
-                TextColumn::make('nom_abonne')
-                    ->label('Nom abonné')
-                    ->placeholder('-')
-                    ->searchable(query: function (Builder $query, string $search): Builder {
+                    BadgeColumn::make("libelle_etat_contrat")
+                        ->label("Statut du contrat")
+                        ->color(function ($state) {
+                            $return = null;
+                            switch ($state) {
+                                case "CONTRAT EN COURS":
+                                    $return = Color::Green;
+                                    break;
 
-                        return $query->selectRaw('nom')->whereRaw('LOWER(nom) LIKE ?', ['%' . strtolower($search) . '%']);
+                                case "CONTRAT RESILIE":
+                                    $return = Color::Orange;
+                                    break;
 
-                    }),
+                                case "CONTRAT BLOQUE":
+                                    $return = Color::Red;
+                                    break;
 
-                TextColumn::make('prenom_abonne')
-                    ->label('Prénom abonné')
-                    ->placeholder('-')
-                    ->searchable(query: function (Builder $query, string $search): Builder {
+                                case "CONTRAT INITIE":
+                                    $return = Color::Blue;
+                                    break;
+                            }
 
-                        return $query->selectRaw('prenoms')->whereRaw('LOWER(prenoms) LIKE ?', ['%' . strtolower($search) . '%']);
-
-                    }),
-
-                TextColumn::make('raison_sociale')
-                    ->label('Raison sociale')
-                    ->placeholder('-'),
-
-                // TextColumn::make('telephone')
-                //     ->label('Téléphone')
-                //     ->badge()
-                //     ->placeholder('-'),
-
-                TextColumn::make('date_reglement')
-                    ->label('Date de règlement')
-                    ->badge()
-                    ->color(Color::Blue)
-                    ->date('d/m/y')
-                    ->placeholder('-'),
-
-                // TextColumn::make('montant_reglement')
-                //     ->label('Montant'),
-
-                // TextColumn::make('date_debut_contrat')
-                //     ->label('Début du contrat')
-                //     ->badge()
-                //     ->color(Color::Green)
-                //     ->date('d/m/Y'),
-
-                // TextColumn::make('date_fin_contrat')
-                //     ->label('Fin du contrat')
-                //     ->badge()
-                //     ->color(Color::Red)
-                //     ->date('d/m/Y'),
-
-                TextColumn::make('libelle_sous_gpe')
-                ->label('Sous-groupe'),
-
-                TextColumn::make('code_bureau')
-                    ->label('Bureau de poste')
-                    ->formatStateUsing(function ($state) {
+                            return $return;
+                        }),
 
 
-                        $bureauPoste = DB::table("boite.bureau")->whereRaw("code_bureau = ?", [$state])->first();
+                    TextColumn::make('nom_abonne')
+                        ->label('Nom abonné')
+                        ->placeholder('-')
+                        ->searchable(query: function (Builder $query, string $search): Builder {
 
-                        $libellePoste = $bureauPoste ? $bureauPoste->designation_buro : $state;
+                            return $query->selectRaw('nom')->whereRaw('LOWER(nom) LIKE ?', ['%' . strtolower($search) . '%']);
 
-                        return $libellePoste;
-                    })
-                    ->placeholder('-'),
+                        }),
 
-                TextColumn::make('duree')
-                    ->label('Durée')
-                    ->badge()
-                    ->color(Color::Blue)
-                    ->placeholder('-'),
+                    TextColumn::make('prenom_abonne')
+                        ->label('Prénom abonné')
+                        ->placeholder('-')
+                        ->searchable(query: function (Builder $query, string $search): Builder {
 
-                // TextColumn::make('id_operation')
-                // ->label('operation')
-                // ->badge()
-                // ->color(Color::Blue)
-                // ->placeholder('-'),
+                            return $query->selectRaw('prenoms')->whereRaw('LOWER(prenoms) LIKE ?', ['%' . strtolower($search) . '%']);
 
-            ])
+                        }),
+
+                    TextColumn::make('raison_sociale')
+                        ->label('Raison sociale')
+                        ->placeholder('-'),
+
+                    // TextColumn::make('telephone')
+                    //     ->label('Téléphone')
+                    //     ->badge()
+                    //     ->placeholder('-'),
+
+                    TextColumn::make('date_reglement')
+                        ->label('Date de règlement')
+                        ->badge()
+                        ->color(Color::Blue)
+                        ->date('d/m/y')
+                        ->placeholder('-'),
+
+                    // TextColumn::make('montant_reglement')
+                    //     ->label('Montant'),
+
+                    // TextColumn::make('date_debut_contrat')
+                    //     ->label('Début du contrat')
+                    //     ->badge()
+                    //     ->color(Color::Green)
+                    //     ->date('d/m/Y'),
+
+                    // TextColumn::make('date_fin_contrat')
+                    //     ->label('Fin du contrat')
+                    //     ->badge()
+                    //     ->color(Color::Red)
+                    //     ->date('d/m/Y'),
+
+                    TextColumn::make('libelle_sous_gpe')
+                        ->label('Sous-groupe'),
+
+                    TextColumn::make('code_bureau')
+                        ->label('Bureau de poste')
+                        ->formatStateUsing(function ($state) {
+
+
+                            $bureauPoste = DB::table("boite.bureau")->whereRaw("code_bureau = ?", [$state])->first();
+
+                            $libellePoste = $bureauPoste ? $bureauPoste->designation_buro : $state;
+
+                            return $libellePoste;
+                        })
+                        ->placeholder('-'),
+
+                    TextColumn::make('duree')
+                        ->label('Durée')
+                        ->badge()
+                        ->color(Color::Blue)
+                        ->placeholder('-'),
+
+                    // TextColumn::make('id_operation')
+                    // ->label('operation')
+                    // ->badge()
+                    // ->color(Color::Blue)
+                    // ->placeholder('-'),
+
+                ])
             ->filters([
 
+                Filter::make('id_operation')
+                        ->label('Identifiant de l\'opération')
+                        ->form([
+                            TextInput::make("id_operation")
+                        ])->query(function (Builder $query, array $data): Builder { 
+                            return $query
+                                ->when(
+                                    $data['id_operation'],
+                                    fn(Builder $query, $idOperation): Builder => $query->where('boite.operation.id_operation', '=', $idOperation),
+                                );
+                        })
+                        ->indicateUsing(function (array $data): ?string {
+                            if (($data['id_operation'])) {
+                                return 'Identifiant de l\'opération:  ' . $data['id_operation'];
+                            }
 
-                Filter::make('date_reglement')
-                    ->label('Date du règlement')
-                    ->form([
+                            return null;
+                        }),
 
-                        Fieldset::make("date_reglement")
-                            ->label("Date du règlement")
-                            ->schema([
-                                Grid::make(2)
+                    Filter::make('date_reglement')
+                        ->label('Date du règlement')
+                        ->form([
+
+                                Fieldset::make("date_reglement")
+                                    ->label("Date du règlement")
                                     ->schema([
+                                            Grid::make(2)
+                                                ->schema([
 
-                                        DatePicker::make('date_from')
-                                            ->label('Du'),
+                                                        DatePicker::make('date_from')
+                                                            ->label('Du'),
 
-                                        DatePicker::make('date_to')
-                                            ->label('Au'),
+                                                        DatePicker::make('date_to')
+                                                            ->label('Au'),
 
-                                    ])->columns(1),
+                                                    ])->columns(1),
+                                        ]),
+
+                            ])
+                        ->query(function (Builder $query, array $data): Builder {
+                            return $query
+                                ->when(
+                                    $data['date_from'],
+                                    fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '>=', $date),
+                                )
+                                ->when(
+                                    $data['date_to'],
+                                    fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '<=', $date),
+                                );
+                        })
+                        ->indicateUsing(function (array $data): ?string {
+                            if (($data['date_from']) && ($data['date_from'])) {
+                                return 'Date du règlement:  ' . Carbon::parse($data['date_from'])->format('d-m-Y') . ' au ' . Carbon::parse($data['date_to'])->format('d-m-Y');
+                            }
+
+                            return null;
+                        }),
+
+                ])
+            ->actions([
+                    Tables\Actions\EditAction::make()
+                        ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
+                        ->using(function (Model $record, array $data): Model {
+
+                            $abonne = Abonne::find($record->id_abonne);
+
+                            $abonne->update([
+                                "nom" => $data["nom_abonne"],
+                                "prenoms" => $data["prenom_abonne"],
+                                "raison_sociale" => $data["raison_sociale"],
+                                "nationalite" => $data["nationalite"],
+                                "tel_fixe" => $data["tel_fixe"],
+                                "num_piece" => $data["num_piece"],
+                                "infos_compl" => $data["infos_compl"],
+                                "titre" => $data["titre"],
+                                "date_deliv_piece" => $data["date_deliv_piece"],
+                                "autorite_deliv_piece" => $data["autorite_deliv_piece"],
+                                "tel_mobile" => $data["tel_mobile"],
+                                "email" => $data["email"],
+                                "nom_maison" => $data["nom_maison"],
+                                "num_maison" => $data["num_maison"],
+                                "nom_rue" => $data["nom_rue"],
+                                "num_rue" => $data["num_rue"],
+                                "quartier" => $data["quartier"],
+                                "premier_resp" => $data["premier_resp"],
+                                "datenais" => $data["datenais"],
+                                // "num_cpte" => $data["num_cpte"],
+                                "code_categ_prof" => $data["code_categ_prof"],
+                                "code_type_piece" => $data["code_type_piece"],
+                                "code_ville" => $data["code_ville"],
+                                // "banque" => $data["banque"],
+                
+
+                            ]);
+
+                            return $record;
+                        }),
+
+                    Tables\Actions\ViewAction::make()
+                        ->extraModalFooterActions([
+                                Action::make('valider')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->requiresConfirmation()
+                                    ->modalHeading('Valider la demande?')
+                                    ->modalDescription("En faisant celà, vous validez la demande d'abonnement à la boîte postale vous invitez le demandeur par SMS à venir signer son contrat.")
+                                    ->color(Color::Green)
+                                    ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
+                                    ->action(function ($record) {
+
+                                        Functions::sendValidation($record);
+
+                                    }),
+
+                                // DG said: no rejects, hence removed
+
+                                // Action::make('rejeter')
+                                //     ->requiresConfirmation()
+                                //     ->modalHeading('Rejeter la demande?')
+                                //     ->modalDescription("En faisant celà, vous rejetez la demande d'abonnement à cette boîte postale. Le demandeur sera informé par SMS du rejet de sa demande.")
+                                //     ->icon('heroicon-o-x-circle')
+                                //     ->color(Color::Red)
+                                //     ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
+                                //     ->action(function ($record) {
+
+                                //         Functions::sendRejection($record);
+
+                                //     }),
+
+                                Action::make('notifier')
+                                    ->label("Notifier l'abonné")
+                                    ->requiresConfirmation()
+                                    ->modalHeading('Notifier l\'abonné?')
+                                    ->modalDescription("En faisant celà, vous informez l'abonné par SMS qu'il doit passer en agence compléter ou corriger certaines informations relatives à sa demande d'abonnement.")
+                                    ->icon('heroicon-o-envelope')
+                                    ->color(Color::Yellow)
+                                    ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
+                                    ->action(function ($record) {
+
+                                        Functions::sendRecallSms($record);
+
+                                    })
+                                    ->visible(fn($record) => ($record->code_etat_contrat == 0 || $record->code_etat_contrat == 2) ? false : true),
+
+                                Action::make('Télécharger')
+                                    ->label("contrat")
+                                    ->icon('heroicon-o-arrow-down-tray')
+                                    ->color('success')
+                                    ->visible(fn($record) => $record->code_etat_contrat == 0 ? true : false) //  0 => en cours || 1 => resilié || 2 => bloque
+                                    // ->url(fn( array $record) => route('contrat.pdf.ddl', $record))
+                                    ->action(function (Model $record) {
+
+                                        return response()->streamDownload(function () use ($record) {
+                                            echo Pdf::loadHtml(
+                                                Blade::render('contrat', ['record' => $record])
+                                            )->stream();
+                                        }, $record->ref_contrat . $record->nom_abonne . '.pdf');
+                                    })
+
+
                             ]),
 
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['date_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '>=', $date),
-                            )
-                            ->when(
-                                $data['date_to'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('date_reglement', '<=', $date),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): ?string {
-                        if (($data['date_from']) && ($data['date_from'])) {
-                            return 'Date du règlement:  ' . Carbon::parse($data['date_from'])->format('d-m-Y') . ' au ' . Carbon::parse($data['date_to'])->format('d-m-Y');
-                        }
+                    // Action::make('valider')
+                    //     ->requiresConfirmation()
+                    //     ->color(Color::Green)
+                    //     ->icon('heroicon-o-check-circle')
+                    //     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." ?"))
+                    //     ->action(function ($record) {
 
-                        return null;
-                    }),
+                    //         Functions::sendValidation($record);
 
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
-                    ->using(function (Model $record, array $data): Model {
+                    //     }),
 
-                        $abonne = Abonne::find($record->id_abonne);
+                    // Action::make('rejeter')
+                    //     ->requiresConfirmation()
+                    //     ->color(Color::Red)
+                    //     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." pour la bôite postale numéro". $record->designation_bp." ?"))
+                    //     ->icon('heroicon-o-x-circle')
+                    //     ->action(function ($record) {
 
-                        $abonne->update([
-                            "nom" => $data["nom_abonne"],
-                            "prenoms" => $data["prenom_abonne"],
-                            "raison_sociale" => $data["raison_sociale"],
-                            "nationalite" => $data["nationalite"],
-                            "tel_fixe" => $data["tel_fixe"],
-                            "num_piece" => $data["num_piece"],
-                            "infos_compl" => $data["infos_compl"],
-                            "titre" => $data["titre"],
-                            "date_deliv_piece" => $data["date_deliv_piece"],
-                            "autorite_deliv_piece" => $data["autorite_deliv_piece"],
-                            "tel_mobile" => $data["tel_mobile"],
-                            "email" => $data["email"],
-                            "nom_maison" => $data["nom_maison"],
-                            "num_maison" => $data["num_maison"],
-                            "nom_rue" => $data["nom_rue"],
-                            "num_rue" => $data["num_rue"],
-                            "quartier" => $data["quartier"],
-                            "premier_resp" => $data["premier_resp"],
-                            "datenais" => $data["datenais"],
-                            // "num_cpte" => $data["num_cpte"],
-                            "code_categ_prof" => $data["code_categ_prof"],
-                            "code_type_piece" => $data["code_type_piece"],
-                            "code_ville" => $data["code_ville"],
-                            // "banque" => $data["banque"],
+                    //         Functions::sendRejection($record);
 
-
-                        ]);
-
-                        return $record;
-                    }),
-
-                Tables\Actions\ViewAction::make()
-                    ->extraModalFooterActions([
-                        Action::make('valider')
-                            ->icon('heroicon-o-check-circle')
-                            ->requiresConfirmation()
-                            ->modalHeading('Valider la demande?')
-                            ->modalDescription("En faisant celà, vous validez la demande d'abonnement à la boîte postale vous invitez le demandeur par SMS à venir signer son contrat.")
-                            ->color(Color::Green)
-                            ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
-                            ->action(function ($record) {
-
-                                Functions::sendValidation($record);
-
-                            }),
-
-                        // DG said: no rejects, hence removed
-                        
-                        // Action::make('rejeter')
-                        //     ->requiresConfirmation()
-                        //     ->modalHeading('Rejeter la demande?')
-                        //     ->modalDescription("En faisant celà, vous rejetez la demande d'abonnement à cette boîte postale. Le demandeur sera informé par SMS du rejet de sa demande.")
-                        //     ->icon('heroicon-o-x-circle')
-                        //     ->color(Color::Red)
-                        //     ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
-                        //     ->action(function ($record) {
-
-                        //         Functions::sendRejection($record);
-
-                        //     }),
-
-                        Action::make('notifier')
-                            ->label("Notifier l'abonné")
-                            ->requiresConfirmation()
-                            ->modalHeading('Notifier l\'abonné?')
-                            ->modalDescription("En faisant celà, vous informez l'abonné par SMS qu'il doit passer en agence compléter ou corriger certaines informations relatives à sa demande d'abonnement.")
-                            ->icon('heroicon-o-envelope')
-                            ->color(Color::Yellow)
-                            ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))
-                            ->action(function ($record) {
-
-                                Functions::sendRecallSms($record);
-
-                            })
-                            ->visible(fn($record) => ($record->code_etat_contrat == 0 || $record->code_etat_contrat == 2) ? false : true),
-
-                        Action::make('Télécharger')
-                            ->label("contrat")
-                            ->icon('heroicon-o-arrow-down-tray')
-                            ->color('success')
-                            ->visible(fn($record) => $record->code_etat_contrat == 0 ? true : false) //  0 => en cours || 1 => resilié || 2 => bloque
-                            // ->url(fn( array $record) => route('contrat.pdf.ddl', $record))
-                            ->action(function (Model $record) {
-
-                                return response()->streamDownload(function () use ($record) {
-                                    echo Pdf::loadHtml(
-                                        Blade::render('contrat', ['record' => $record])
-                                    )->stream();
-                                }, $record->ref_contrat . $record->nom_abonne . '.pdf');
-                            })
-
-
-                    ]),
-
-                // Action::make('valider')
-                //     ->requiresConfirmation()
-                //     ->color(Color::Green)
-                //     ->icon('heroicon-o-check-circle')
-                //     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir attribuer la bôite postale numéro ".$record->designation_bp. " à ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." ?"))
-                //     ->action(function ($record) {
-
-                //         Functions::sendValidation($record);
-
-                //     }),
-
-                // Action::make('rejeter')
-                //     ->requiresConfirmation()
-                //     ->color(Color::Red)
-                //     // ->modalHeading(fn($record) => __("Etes-vous sûr(e) de vouloir rejeter la demande de  ".strtolower($record->prenom_abonne)." ". $record->nom_abonne." ".$record->raison_sociale." pour la bôite postale numéro". $record->designation_bp." ?"))
-                //     ->icon('heroicon-o-x-circle')
-                //     ->action(function ($record) {
-
-                //         Functions::sendRejection($record);
-
-                //     }),
-            ])
+                    //     }),
+                ])
 
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -726,12 +754,12 @@ class ContratResource extends Resource
     {
         $user = auth()->user();
 
-        if($user->hasAnyRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value])){
+        if ($user->hasAnyRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value])) {
             return true;
         }
         return false;
     }
-    
+
 
 
 }

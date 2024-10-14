@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\DB;
 use App\Procedures\StoredProcedures;
+use Illuminate\Support\Facades\Http;
 use Filament\Notifications\Notification;
 
 class Functions
@@ -41,7 +42,7 @@ class Functions
 
         $bureau = BureauPoste::find($record->code_bureau);
 
-        $telephone = "228".$record->telephone;
+        $telephone = "228". "91568182";// TODO: REVERT TO THIS --> $record->telephone;
 
         $message = 'NOUS AVONS LE PLAISIR DE VOUS INFORMER QUE LA BOITE POSTALE '.$bureau->code_postal_buro.' BP '.$record->designation_bp.' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE '.$bureau->designation_buro .' POUR SIGNER VOTRE CONTRAT.';
 
@@ -64,7 +65,6 @@ class Functions
             'dateSms' => $dateSms,
             'origine' => $origine,
             'bureau' => $bureau,
-
         ];
 
     }
@@ -127,7 +127,7 @@ class Functions
             ->color(Color::Green)
             ->send();
 
-            Atd::sendInfosBackToFront($record);
+            Atd::sendInfosBackToFront($record, atd::VALIDE);
 
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
@@ -206,8 +206,9 @@ class Functions
             ->color(Color::Blue)
             ->send();
 
-        Atd::sendInfosBackToFront($record);
+        Atd::sendInfosBackToFront($record, Atd::REVOIR);
 
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
+
 }

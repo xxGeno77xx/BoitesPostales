@@ -14,32 +14,52 @@ use Filament\Notifications\Notification;
 
 class Atd
 {
-    const VALIDE = "DEMANDE VALIDE";
-    const REVOIR = "DEMANDE A REVOIR";
+    const VALIDE = "DEMANDE VALIDEE";
+    const REVOIR = "DEMANDE A CORRIGER";
 
-    public static function sendInfosBackToFront($record)
+    public static function sendInfosBackToFront($record, $status)
     {
-        // $status = "" ;
 
-        // $endpoint = '';
+        $infos = DB::table("boite.notification")
+        ->join("gateway.paiement", "gateway.paiement.idpaiement", "=", "boite.notification.id_paiement")
+        ->where("gateway.paiement.numero_operation", "=", $record->id_operation)
+        ->first();
+        
+        $notificationID = $infos->id_notif;
+        
+        $notification = DB::table("boite.notification")->where("id_notif", "=", $notificationID );
 
-        // if($record->code_etat_bp == 2)
-        // {
-        //     $status = Self::VALIDE;
-        // }
+        try {
 
-        // else $status = Self::REVOIR;
-  
-        // $response = Http::withHeaders([
+            //$notification = DB::table("boite.notification")->where("id_operation", $record->id_operation)->first();
+           
+            $endpoint = config("app.callbackApiUrl", " ");
 
-        //     'Authorization' => env('API_KEY', null),
-            
-        // ])->get($endpoint, [
-            
-        //     'status' => $status,
-        // ]);
+            if($notification)
+            {
+                $notification->update([
+                    'title' => "Validation Abonnement",
+                    'message' => $status
+                ]);
+    
+                Http::post($endpoint, [
+    
+                    'idNotif' => $notificationID,
+                    'title' => "Validation Abonnement",
+                    'message' => $status
+    
+                ]);
+            }
+           
 
-        // $result = $response->collect()["content"];
- 
+        } catch (\Exception $e) {
+
+            Notification::make('error')
+                ->title("Erreur")
+                ->body('Erreur lors de la mise à jour du statut de la demande sur la plateforme')
+                ->color(Color::Red)
+                ->send();
+        }
+
     }
 }

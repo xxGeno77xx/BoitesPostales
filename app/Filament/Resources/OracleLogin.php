@@ -66,38 +66,23 @@ class OracleLogin extends Login
     {
 
 
-
-        // $connString = "(DESCRIPTION =(ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.60.34)(PORT = 5500))) (CONNECT_DATA = (SERVICE_NAME = dbpost)))";
-
-        // $authenticationLimit = config('app.LOGIN_LIMIT', 4);
-
         $data = $this->form->getState();
 
-        // oci_connect(strtoupper($data['username']), $data['password'],  $connString);
- 
         $oracleuser = DbaUser::where("username", strtoupper($data["username"]))->first();
 
-        
- 
+
         try {
 
-            $this->rateLimit(5); 
- 
-            
-                $agent = DB::table("spt.caissier")->whereRaw("rtrim(nom_caissier) = rtrim(?)", [ $oracleuser->username])->first();
+            $this->rateLimit(5);
 
-                if(! $agent)
-                {
-                   $this->noNumeroCaisse();
-                }
-   
+            if (!$oracleuser) {
+                $this->noNumeroCaisse();
+            }
 
             try {
 
-               
-                $conn = oci_connect(strtoupper($data['username']), $data['password'],  env("CONNECTION"));
+                $conn = oci_connect(strtoupper($data['username']), $data['password'], env("CONNECTION"));
 
-              
             } catch (\ErrorException $e) {
 
                 if ($oracleuser) {
@@ -106,20 +91,18 @@ class OracleLogin extends Login
                     }
                 }
 
-         
-                
                 $this->throwFailureValidationException();
-                
+
             }
 
-           
+
 
         } catch (TooManyRequestsException $exception) {
             Notification::make()
                 ->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [
-                    'seconds' => $exception->secondsUntilAvailable,
-                    'minutes' => ceil($exception->secondsUntilAvailable / 60),
-                ]))
+                            'seconds' => $exception->secondsUntilAvailable,
+                            'minutes' => ceil($exception->secondsUntilAvailable / 60),
+                        ]))
                 ->body(array_key_exists('body', __('filament-panels::pages/auth/login.notifications.throttled') ?: []) ? __('filament-panels::pages/auth/login.notifications.throttled.body', [
                     'seconds' => $exception->secondsUntilAvailable,
                     'minutes' => ceil($exception->secondsUntilAvailable / 60),
@@ -132,20 +115,22 @@ class OracleLogin extends Login
 
 
         $userToLogIn = User::where('username', strtoupper($data['username']))->first();
-        
+
         if (!$userToLogIn) {
 
-            $createUser = User::firstOrCreate([
-                'email' => $data['username'].'@laposte.tg',
-                'password' => Hash::make('L@poste+2024'),
-                'name' => $data['username'],
-                'username' => strtoupper($data['username']),
-                "code_bureau" => $agent->code_agence
-            ]);
+            // $createUser = User::firstOrCreate([
+            //     'email' => $data['username'].'@laposte.tg',
+            //     'password' => Hash::make('L@poste+2024'),
+            //     'name' => $data['username'],
+            //     'username' => strtoupper($data['username']),
+            //     "code_bureau" => $agent->code_agence
+            // ]);
 
-            $newUser = User::where("name", $data['username'])->first();
+            // $newUser = User::where("name", $data['username'])->first();
 
-            Auth::login($newUser);
+            // Auth::login($newUser);
+
+            $this->OracleUserNotAllowedOnAppValidation();
 
         } else {
 
@@ -174,10 +159,10 @@ class OracleLogin extends Login
             'form' => $this->form(
                 $this->makeForm()
                     ->schema([
-                        $this->getUserNameFormComponent(),
-                        $this->getPasswordFormComponent(),
-                        $this->getRememberFormComponent(),
-                    ])
+                            $this->getUserNameFormComponent(),
+                            $this->getPasswordFormComponent(),
+                            $this->getRememberFormComponent(),
+                        ])
                     ->statePath('data'),
             ),
         ];

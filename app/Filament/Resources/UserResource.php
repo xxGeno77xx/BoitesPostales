@@ -84,14 +84,17 @@ class UserResource extends Resource
             ->schema([
                 Card::make()
                     ->schema([
-                        TextInput::make('name')
-                            ->label(strval(__('filament-authentication::filament-authentication.field.user.name')))
+                        // TextInput::make('name')
+                        //     ->label(strval(__('filament-authentication::filament-authentication.field.user.name')))
+                        //     ->required(),
+                            TextInput::make('username')
+                            ->label(strval(__('Nom d\'utilisateur')))
                             ->required(),
-                        TextInput::make('email')
-                            ->required()
-                            ->email()
-                            ->unique(table: static::$model, ignorable: fn($record) => $record)
-                            ->label(strval(__('filament-authentication::filament-authentication.field.user.email'))),
+                        // TextInput::make('email')
+                        //     ->required()
+                        //     ->email()
+                        //     ->unique(table: static::$model, ignorable: fn($record) => $record)
+                        //     ->label(strval(__('filament-authentication::filament-authentication.field.user.email'))),
                         TextInput::make('password')
                             ->same('passwordConfirmation')
                             ->password()

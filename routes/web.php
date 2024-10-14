@@ -16,10 +16,10 @@ use App\Http\Controllers\DownloadController;
 |
 */
 
-// Route::get('/test', function () {
-
-//     return view("etat");
-// });
+Route::get('/test', function () {
+ 
+    return  config("app.tarifAbonnementUrl");
+});
 
 Route::get('/{record}/pdf', [DownloadController::class, 'downloadPdf'])->name('contrat.pdf.ddl');
 

@@ -213,6 +213,10 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
-     
+     'callbackApiUrl' => env("CALLBACK_API_URL", ""),
+
+     'tarifAbonnementUrl' => env("TARIF_ABONNEMENT_URL", ""),
+
+     'tarifApiToken' =>  env('API_KEY', null)
 
 ];
