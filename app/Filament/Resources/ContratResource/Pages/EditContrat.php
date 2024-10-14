@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\ContratResource\Pages;
 
-use App\Filament\Resources\ContratResource;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\ContratResource;
 
 class EditContrat extends EditRecord
 {
@@ -16,4 +17,6 @@ class EditContrat extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+
 }
