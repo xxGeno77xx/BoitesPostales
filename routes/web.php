@@ -18,7 +18,25 @@ use App\Http\Controllers\DownloadController;
 
 Route::get('/test', function () {
  
-    return  config("app.tarifAbonnementUrl");
+    $endpoint = config("app.callbackApiUrl", " ");
+
+    $response = Http::post($endpoint, [
+    
+        'idNotif' => 43,
+        'title' => 'TITLE',
+        'message' => 'message'
+
+    ]);
+
+   
+
+    if($response->collect("success")[0] == false)
+    {
+        dd("false");
+    }
+
+    dd('true');
+    // dd($response->body());
 });
 
 Route::get('/{record}/pdf', [DownloadController::class, 'downloadPdf'])->name('contrat.pdf.ddl');

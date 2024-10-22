@@ -57,11 +57,11 @@ class ContratResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    { 
+    {
         return $form
             ->schema([
 
-                
+
                 Fieldset::make("Pieces justificatives")
                     ->columnSpanFull()
                     ->schema([
@@ -188,10 +188,10 @@ class ContratResource extends Resource
 
                     ]),
 
-                    Forms\Components\Actions::make([
-                        Forms\Components\Actions\Action::make('Sauvegarder')
-                            ->submit('save')
-                    ]),
+                Forms\Components\Actions::make([
+                    Forms\Components\Actions\Action::make('Sauvegarder')
+                        ->submit('save')
+                ]),
 
                 Fieldset::make('Règlement')
                     ->disabledOn("edit")
@@ -260,7 +260,7 @@ class ContratResource extends Resource
                                     $set("catPro", 1);// physiqye
                                 } else
                                     $set("catPro", 2); // morale
-                   
+                    
                             })
                             ->dehydrated(false)
                             ->inline(),
@@ -355,11 +355,13 @@ class ContratResource extends Resource
     {
         return $table
             ->persistFiltersInSession()
+            ->defaultSort("date_reglement", "desc")
             ->columns([
 
                 TextColumn::make('ref_contrat')
                     ->label('Référence du contrat')
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->searchable(isIndividual:true),
 
                 BadgeColumn::make("libelle_etat_contrat")
                     ->label("Statut du contrat")
@@ -394,7 +396,7 @@ class ContratResource extends Resource
 
                         return $query->selectRaw('nom')->whereRaw('LOWER(nom) LIKE ?', ['%' . strtolower($search) . '%']);
 
-                    }),
+                    }, isIndividual:true),
 
                 TextColumn::make('prenom_abonne')
                     ->label('Prénom abonné')
@@ -414,12 +416,14 @@ class ContratResource extends Resource
                     ->badge()
                     ->color(Color::Blue)
                     ->date('d/m/y')
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->sortable(),
 
                 TextColumn::make('libelle_sous_gpe')
                     ->label('Sous-groupe'),
 
                 TextColumn::make('code_bureau')
+                    ->sortable()
                     ->label('Bureau de poste')
                     ->formatStateUsing(function ($state) {
 
@@ -434,6 +438,7 @@ class ContratResource extends Resource
 
                 TextColumn::make('duree')
                     ->label('Durée')
+                    ->sortable()
                     ->badge()
                     ->color(Color::Blue)
                     ->placeholder('-'),
@@ -441,24 +446,24 @@ class ContratResource extends Resource
             ])
             ->filters([
 
-                Filter::make('id_operation')
-                    ->label('Identifiant de l\'opération')
-                    ->form([
-                        TextInput::make("id_operation")
-                    ])->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['id_operation'],
-                                fn(Builder $query, $idOperation): Builder => $query->where('boite.operation.id_operation', '=', $idOperation),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): ?string {
-                        if (($data['id_operation'])) {
-                            return 'Identifiant de l\'opération:  ' . $data['id_operation'];
-                        }
+                // Filter::make('id_operation')
+                //     ->label('Identifiant de l\'opération')
+                //     ->form([
+                //         TextInput::make("id_operation")
+                //     ])->query(function (Builder $query, array $data): Builder {
+                //         return $query
+                //             ->when(
+                //                 $data['id_operation'],
+                //                 fn(Builder $query, $idOperation): Builder => $query->where('boite.operation.id_operation', '=', $idOperation),
+                //             );
+                //     })
+                //     ->indicateUsing(function (array $data): ?string {
+                //         if (($data['id_operation'])) {
+                //             return 'Identifiant de l\'opération:  ' . $data['id_operation'];
+                //         }
 
-                        return null;
-                    }),
+                //         return null;
+                //     }),
 
                 Filter::make('date_reglement')
                     ->label('Date du règlement')
@@ -501,7 +506,7 @@ class ContratResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->modalFooterActions(function(){
+                    ->modalFooterActions(function () {
                         return [];
                     })
                     ->visible(fn() => auth()->user()->hasRole([RolesEnums::Admin()->value, RolesEnums::Dcm()->value]))

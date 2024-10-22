@@ -42,7 +42,7 @@ class Functions
 
         $bureau = BureauPoste::find($record->code_bureau);
 
-        $telephone = "228" . "91568182";// TODO: REVERT TO THIS --> $record->telephone;
+        $telephone = "228".$record->telephone;
 
         $message = 'NOUS AVONS LE PLAISIR DE VOUS INFORMER QUE LA BOITE POSTALE ' . $bureau->code_postal_buro . ' BP ' . $record->designation_bp . ' VOUS EST ATTRIBUEE. RENDEZ VOUS A L\'AGENCE ' . $bureau->designation_buro . ' POUR SIGNER VOTRE CONTRAT.';
 
@@ -127,7 +127,7 @@ class Functions
             ->color(Color::Green)
             ->send();
 
-        Atd::sendInfosBackToFront($record, atd::VALIDE);
+        Atd::sendInfosBackToFront($record, $data['message']);
 
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
@@ -168,7 +168,6 @@ class Functions
 
         $message = 'VOUS ETES PRIES DE PASSER A L\'AGENCE ' . $bureau . ' CORRIGER VOS INFORMATIONS RELATIVES A VOTRE DEMANDE D\'ABONNEMENT A UNE BOITE POSTALE. MERCI';
 
-
         $dateSms = Carbon::parse(today())->format('d/m/y');
 
         $bureau = BureauPoste::find($record->code_bureau);
@@ -206,7 +205,7 @@ class Functions
             ->color(Color::Blue)
             ->send();
 
-        Atd::sendInfosBackToFront($record, Atd::REVOIR);
+        Atd::sendInfosBackToFront($record, $data['message']);
 
         return StoredProcedures::sendSms($data['refSms'], $data['telephone'], $data['message'], $data['dateSms'], $data['origine']);
     }
@@ -220,7 +219,6 @@ class Functions
         $duree = $get("duree_abonnement");
 
         $codeTypeOperation = $get("type_op");
-
 
         try {
 

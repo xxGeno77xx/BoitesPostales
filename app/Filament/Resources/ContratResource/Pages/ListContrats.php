@@ -112,8 +112,8 @@ class ListContrats extends ListRecords
                   ->orWhereRaw('boite.contrat.code_etat_contrat = ? AND boite.boite_postale.code_etat_bp = ?', [2, 1]); // contrat bloque et boite libre
         })
         ->whereNotNull("boite.abonne.document_name")
-        ->whereRaw("to_number(to_char(boite.contrat.date_debut_contrat,'yyyymmdd'))  >= 20240101")
-        ->orderby("boite.reglement.date_reglement", "desc");
+        ->whereRaw("to_number(to_char(boite.contrat.date_debut_contrat,'yyyymmdd'))  >= 20240101");
+        // ->orderby("boite.reglement.date_reglement", "desc");
     }
 
      public function bureauPosteQuery()
