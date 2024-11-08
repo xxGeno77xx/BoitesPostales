@@ -191,6 +191,7 @@ class ContratResource extends Resource
                 Forms\Components\Actions::make([
                     Forms\Components\Actions\Action::make('Sauvegarder')
                         ->submit('save')
+                        ->visible(fn($action) =>  $action->getLivewire()->mountedTableActions[0] == "view"? false : true)
                 ]),
 
                 Fieldset::make('Règlement')

@@ -47,7 +47,7 @@ class CheckRenouvellements extends Command
 
             foreach ($renouvellements as $renouvellement) {
               
-                $message = "BONJOUR, VOTRE REDEVANCE DE BOITE POSTALE ".$renouvellement->code_postal_buro."BP".$renouvellement->designation_bp." A ETE REGELEE. LA NOUVELLE DATE DE FIN DE CONTRAT EST LE ".Carbon::parse($renouvellement->date_fin_contrat)->format("d/m/Y");
+                $message = "BONJOUR, VOTRE REDEVANCE DE BOITE POSTALE ".$renouvellement->code_postal_buro."BP".$renouvellement->designation_bp." A ETE REGLEE. LA NOUVELLE DATE DE FIN DE CONTRAT EST LE ".Carbon::parse($renouvellement->date_fin_contrat)->format("d/m/Y");
 
                 RenouvellementNotif::sendInfosToFront($renouvellement->id_notif, $message);
 
