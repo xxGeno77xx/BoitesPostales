@@ -1,6 +1,8 @@
 <?php
 
 use Carbon\Carbon;
+use App\Functions\Atd;
+use App\Models\BoitesPostale;
 use App\Procedures\StoredProcedures;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DownloadController;
@@ -17,26 +19,19 @@ use App\Http\Controllers\DownloadController;
 */
 
 Route::get('/test', function () {
+
+ $title = "RENOUVELLEMENT ABONNEMENT";
+
  
-    $endpoint = config("app.callbackApiUrl", " ");
+ $renouvellements = DB::table("boite.operation")
+ ->join("gateway.paiement", "gateway.paiement.numero_operation", "boite.operation.id_operation" )
+ ->join("boite.notification", "boite.notification.id_paiement", "gateway.paiement.idpaiement")
+ ->where("code_type_op", 3) // renouvellements
+ ->pluck("id_notif");
 
-    $response = Http::post($endpoint, [
-    
-        'idNotif' => 43,
-        'title' => 'TITLE',
-        'message' => 'message'
+ 
+ 
 
-    ]);
-
-   
-
-    if($response->collect("success")[0] == false)
-    {
-        dd("false");
-    }
-
-    dd('true');
-    // dd($response->body());
 });
 
 Route::get('/{record}/pdf', [DownloadController::class, 'downloadPdf'])->name('contrat.pdf.ddl');
